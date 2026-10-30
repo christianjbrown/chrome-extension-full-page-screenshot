@@ -1,0 +1,35 @@
+{
+  "name": "full-page-screenshot-chrome-extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome extension: one click saves a full-page PNG screenshot of the current tab.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint --max-warnings 0 .",
+    "typecheck": "tsc --noEmit",
+    "knip": "knip",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "ci": "npm run format:check && npm run lint && npm run typecheck && npm run knip && npm run test:coverage && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/chrome": "^0.3.6",
+    "@vitest/coverage-v8": "^5.0.5",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.13.0",
+    "eslint-plugin-import-x": "^4.17.1",
+    "eslint-plugin-sonarjs": "^4.2.2",
+    "knip": "^6.43.0",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.0.5"
+  }
+}

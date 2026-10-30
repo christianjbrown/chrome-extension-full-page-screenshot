@@ -1,0 +1,10 @@
+#!/bin/sh
+# What has to pass before a push leaves this repository.
+#
+# Run by the global pre-push hook in ~/.claude/skills/git-hooks, which looks for
+# this exact path and does nothing when it is absent. Committed rather than
+# installed by hand, so a fresh clone is already guarded.
+#
+# `npm run ci` and nothing else: formatting, lint, types, unused code, the whole
+# suite at 100% coverage, and the build. The same entry point CI uses.
+exec npm run ci

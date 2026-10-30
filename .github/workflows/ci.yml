@@ -1,0 +1,66 @@
+name: CI
+
+# Every gate there is, through the same entry point the pre-push hook uses, so a
+# push that passed locally passes here.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to a pull request makes the older run's answer irrelevant, so it is cancelled.
+# Pushes to main are grouped by commit, so they never cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # On a push to main, the job below is skipped when the pull request it came from already passed
+  # this workflow on the identical tree. Any doubt, or this job failing, runs it as before. See
+  # christianjbrown/ci-already-tested.
+  tested:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+    outputs:
+      tested: ${{ steps.check.outputs.tested }}
+    steps:
+      - name: Already passed on the pull request
+        id: check
+        uses: christianjbrown/ci-already-tested@main
+
+  # On a pull request, the job below is skipped when the pre-push hook already ran these same gates
+  # on exactly this commit: the global hook sets a local-gates status after a checked push from a
+  # clean tree lands. No status (a dirty tree, --no-verify, another machine) runs it as before. See
+  # christianjbrown/ci-already-tested, locally-tested.
+  local:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: read
+    outputs:
+      tested: ${{ steps.check.outputs.tested }}
+    steps:
+      - name: Already passed the pre-push gates
+        id: check
+        uses: christianjbrown/ci-already-tested/locally-tested@main
+
+  gates:
+    name: Gates
+    needs: [tested, local]
+    if: ${{ !cancelled() && needs.tested.outputs.tested != 'true' && needs.local.outputs.tested != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run ci

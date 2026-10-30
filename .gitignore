@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build output: load the extension unpacked from dist/
+dist/
+
+# Test coverage reports
+coverage/
+
+# Logs and editor or OS files
+*.log
+npm-debug.log*
+.DS_Store
+.idea/
+.vscode/
+*.swp
