@@ -21,8 +21,8 @@ You need [Node.js](https://nodejs.org) 22 or newer, and Chrome 126 or newer.
 1. Grab the code and build it:
 
    ```bash
-   git clone https://github.com/christianjbrown/full-page-screenshot-chrome-extension.git
-   cd full-page-screenshot-chrome-extension
+   git clone https://github.com/christianjbrown/chrome-extension-full-page-screenshot.git
+   cd chrome-extension-full-page-screenshot
    npm ci
    npm run build
    ```
@@ -32,7 +32,7 @@ You need [Node.js](https://nodejs.org) 22 or newer, and Chrome 126 or newer.
 2. Open `chrome://extensions` in Chrome.
 3. Flip on **Developer mode** (top right).
 4. Click **Load unpacked** and pick the `dist` folder.
-5. Click the puzzle piece 🧩 in the toolbar and hit the pin next to **Full Page Screenshot**.
+5. Click the puzzle piece 🧩 in the toolbar and hit the pin next to **Christian's Full Page Screenshot**.
 
 Done. The little blue page icon in your toolbar is your new best friend.
 
@@ -44,7 +44,7 @@ npm ci
 npm run build
 ```
 
-Then hit the reload arrow on Full Page Screenshot's card in `chrome://extensions`.
+Then hit the reload arrow on the Christian's Full Page Screenshot card in `chrome://extensions`.
 
 ## Using it 🎯
 
