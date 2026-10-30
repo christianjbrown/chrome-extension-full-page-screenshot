@@ -24,9 +24,20 @@ function installPage() {
       },
     },
   });
+  const picture = {
+    complete: false,
+    getBoundingClientRect: () => ({
+      top: 10,
+      bottom: 210,
+      left: 0,
+      right: 300,
+    }),
+    decode: vi.fn(() => Promise.resolve()),
+  };
   vi.stubGlobal("document", {
     documentElement: root,
     querySelectorAll: () => [root, header],
+    images: [picture],
   });
   vi.stubGlobal("window", window);
   vi.stubGlobal(
@@ -45,7 +56,7 @@ function installPage() {
       callback();
     }),
   );
-  return { listeners, window, root, header };
+  return { listeners, window, root, header, picture };
 }
 
 async function load() {
@@ -65,7 +76,7 @@ describe("page script", () => {
   });
 
   it("prepares, scrolls and restores the page on request", async () => {
-    const { listeners, window, root, header } = installPage();
+    const { listeners, window, root, header, picture } = installPage();
     await load();
 
     await expect(
@@ -91,6 +102,7 @@ describe("page script", () => {
       }),
     ).resolves.toEqual({ ok: true, value: 800 });
     expect(header.style.getPropertyValue("opacity")).toBe("0");
+    expect(picture.decode).toHaveBeenCalled();
     await expect(
       send(listeners, { target: "page", type: "restore" }),
     ).resolves.toEqual({ ok: true, value: undefined });
