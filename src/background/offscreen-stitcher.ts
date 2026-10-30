@@ -1,10 +1,10 @@
-import type { MessageSender, OffscreenMessage } from "../shared/messages";
+import type { MessageSender, OffscreenMessage, Rect } from "../shared/messages";
 import { unwrap } from "../shared/replies";
 
 // The service worker's handle on the document that stitches the slices.
 export interface StitchDriver {
   begin(width: number, height: number): Promise<void>;
-  add(dataUrl: string, from: number, to: number, y: number): Promise<void>;
+  add(dataUrl: string, rects: Rect[], scroll: number): Promise<void>;
   finish(): Promise<string[]>;
   close(): Promise<void>;
 }
@@ -47,14 +47,13 @@ export class OffscreenStitcher implements StitchDriver {
     await this.ask({ target: "offscreen", type: "begin", width, height });
   }
 
-  add(dataUrl: string, from: number, to: number, y: number): Promise<void> {
+  add(dataUrl: string, rects: Rect[], scroll: number): Promise<void> {
     return this.ask({
       target: "offscreen",
       type: "slice",
       dataUrl,
-      from,
-      to,
-      y,
+      rects,
+      scroll,
     });
   }
 

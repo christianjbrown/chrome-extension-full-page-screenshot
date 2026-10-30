@@ -60,15 +60,16 @@ describe("OffscreenStitcher", () => {
   it("sends each slice", async () => {
     const { messages, stitcher } = setUp(true);
 
-    await stitcher.add("data:x", 100, 900, 1700);
+    const rects = [{ x: 250, y: 100, width: 900, height: 800 }];
+
+    await stitcher.add("data:x", rects, 1700);
 
     expect(messages.send).toHaveBeenCalledWith({
       target: "offscreen",
       type: "slice",
       dataUrl: "data:x",
-      from: 100,
-      to: 900,
-      y: 1700,
+      rects,
+      scroll: 1700,
     });
   });
 

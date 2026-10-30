@@ -32,6 +32,8 @@ describe("PageController", () => {
       viewportHeight: 800,
       frameTop: 0,
       frameHeight: 800,
+      frameLeft: 0,
+      frameWidth: 1200,
       scrollHeight: 3000,
     });
     expect(root.style.getPropertyValue("scroll-behavior")).toBe("auto");

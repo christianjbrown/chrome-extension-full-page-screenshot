@@ -4,6 +4,8 @@ import type { Styled } from "./style-ledger";
 export interface ScrollFrame {
   top: number;
   height: number;
+  left: number;
+  width: number;
 }
 
 // Whatever actually scrolls the page's content: the window, or an inner element.
@@ -34,7 +36,12 @@ export class WindowScroller implements Scroller {
   }
 
   frame(): ScrollFrame {
-    return { top: 0, height: this.window.innerHeight };
+    return {
+      top: 0,
+      height: this.window.innerHeight,
+      left: 0,
+      width: this.window.innerWidth,
+    };
   }
 
   scrollHeight(): number {
@@ -50,6 +57,19 @@ export class WindowScroller implements Scroller {
   }
 }
 
+// The part of a span from start to start + size that falls within 0 to limit.
+function onScreen(
+  start: number,
+  size: number,
+  limit: number,
+): { start: number; size: number } {
+  const from = Math.min(limit, Math.max(0, start));
+  return {
+    start: from,
+    size: Math.max(0, Math.min(limit, start + size) - from),
+  };
+}
+
 export class ElementScroller implements Scroller {
   constructor(
     private readonly element: PageElement,
@@ -62,15 +82,23 @@ export class ElementScroller implements Scroller {
 
   // The element's padding box, cut to the part that is on screen.
   frame(): ScrollFrame {
-    const viewport = this.window.innerHeight;
-    const top = Math.min(
-      viewport,
-      Math.max(
-        0,
-        this.element.getBoundingClientRect().top + this.element.clientTop,
-      ),
+    const box = this.element.getBoundingClientRect();
+    const rows = onScreen(
+      box.top + this.element.clientTop,
+      this.element.clientHeight,
+      this.window.innerHeight,
     );
-    return { top, height: Math.min(this.element.clientHeight, viewport - top) };
+    const columns = onScreen(
+      box.left + this.element.clientLeft,
+      this.element.clientWidth,
+      this.window.innerWidth,
+    );
+    return {
+      top: rows.start,
+      height: rows.size,
+      left: columns.start,
+      width: columns.size,
+    };
   }
 
   scrollHeight(): number {

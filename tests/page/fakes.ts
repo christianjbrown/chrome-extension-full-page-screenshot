@@ -40,16 +40,18 @@ export function fakeElement(
     position?: string;
     overflowY?: string;
     rectTop?: number;
+    rectLeft?: number;
   } = {},
 ): FakeElement {
-  const { position, overflowY, rectTop, ...rest } = overrides;
+  const { position, overflowY, rectTop, rectLeft, ...rest } = overrides;
   return {
     scrollHeight: 100,
     clientHeight: 100,
     clientWidth: 100,
     clientTop: 0,
+    clientLeft: 0,
     scrollTop: 0,
-    getBoundingClientRect: () => ({ top: rectTop ?? 0 }),
+    getBoundingClientRect: () => ({ top: rectTop ?? 0, left: rectLeft ?? 0 }),
     ...rest,
     style: new FakeStyle(),
     look: { position: position ?? "static", overflowY: overflowY ?? "visible" },

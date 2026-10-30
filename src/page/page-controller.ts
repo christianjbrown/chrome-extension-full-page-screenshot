@@ -49,6 +49,8 @@ export class PageController implements PageCommands {
       viewportHeight: this.deps.viewport.innerHeight,
       frameTop: frame.top,
       frameHeight: frame.height,
+      frameLeft: frame.left,
+      frameWidth: frame.width,
       scrollHeight: scroller.scrollHeight(),
     });
   }

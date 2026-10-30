@@ -23,24 +23,24 @@ function canvasClass(context: Canvas2d | null) {
 }
 
 describe("OffscreenCanvasSurfaces", () => {
-  it("draws rows of the image across the full width", () => {
+  it("copies a box of the image into the same columns", () => {
     const context = { drawImage: vi.fn() };
     const { Canvas } = canvasClass(context);
     const image = fakeBitmap(2400, 1600);
 
     new OffscreenCanvasSurfaces(Canvas)
       .create(2400, 5000)
-      .draw(image, 120, 1480, 3000);
+      .draw(image, { x: 500, y: 120, width: 1800, height: 1480 }, 3000);
 
     expect(context.drawImage).toHaveBeenCalledWith(
       image,
-      0,
+      500,
       120,
-      2400,
+      1800,
       1480,
-      0,
+      500,
       3000,
-      2400,
+      1800,
       1480,
     );
   });

@@ -22,7 +22,7 @@ const stitcher = new Stitcher({
 const router = new CommandRouter<OffscreenMessage>("offscreen", {
   begin: (message) => stitcher.begin(message.width, message.height),
   slice: (message) =>
-    stitcher.add(message.dataUrl, message.from, message.to, message.y),
+    stitcher.add(message.dataUrl, message.rects, message.scroll),
   finish: () => stitcher.finish(),
 });
 

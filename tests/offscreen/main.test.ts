@@ -71,9 +71,8 @@ describe("offscreen document", () => {
       target: "offscreen",
       type: "slice",
       dataUrl: "data:image/png;base64,AA",
-      from: 0,
-      to: 800,
-      y: 0,
+      rects: [{ x: 0, y: 0, width: 1200, height: 800 }],
+      scroll: 0,
     });
     await expect(
       send(listeners, { target: "offscreen", type: "finish" }),

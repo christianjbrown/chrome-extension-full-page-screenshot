@@ -1,4 +1,4 @@
-import type { PageLayout } from "../shared/messages";
+import type { PageLayout, Rect } from "../shared/messages";
 
 // Past this, in CSS pixels, the capture stops. It keeps a page that never ends
 // from capturing for minutes.
@@ -6,9 +6,9 @@ export const MAX_PAGE_HEIGHT = 60000;
 
 interface PlannedSlice {
   scroll: number;
-  // The viewport rows this slice contributes, in CSS pixels.
-  from: number;
-  to: number;
+  // The parts of the viewport this slice contributes. Each belongs in the
+  // page at its own position plus where the page has scrolled to.
+  rects: Rect[];
 }
 
 export interface CapturePlan {
@@ -21,42 +21,67 @@ export interface CapturePlanner {
   plan(layout: PageLayout): CapturePlan;
 }
 
-// One slice per frame's worth of scrolling. The first slice also brings what
-// sits above the frame, the last one what sits below it, and the last only
-// adds the rows the one before it had not already covered.
+// A frame scrolled entirely off screen has nothing to show, so it is not scrolled.
+function deepestScroll(layout: PageLayout): number {
+  if (layout.frameHeight <= 0) {
+    return 0;
+  }
+  return Math.max(
+    0,
+    Math.min(
+      layout.scrollHeight - layout.frameHeight,
+      MAX_PAGE_HEIGHT - layout.viewportHeight,
+    ),
+  );
+}
+
+function scrollsDownTo(deepest: number, step: number): number[] {
+  const scrolls = [0];
+  for (let scroll = step; scroll < deepest; scroll += step) {
+    scrolls.push(scroll);
+  }
+  if (deepest > 0) {
+    scrolls.push(deepest);
+  }
+  return scrolls;
+}
+
+// One slice per frame's worth of scrolling. The first slice takes the whole
+// viewport down to the bottom of the frame, so whatever sits beside or above
+// the frame (Gmail's navigation, say) shows once. Later slices take only the
+// frame's own box, the last one adds only the rows the one before it had not
+// covered, and it also brings whatever sits below the frame.
 export class SlicePlanner implements CapturePlanner {
   plan(layout: PageLayout): CapturePlan {
-    const { viewportHeight, frameTop, frameHeight } = layout;
+    const { viewportWidth, viewportHeight, frameTop, frameHeight } = layout;
     const frameBottom = frameTop + frameHeight;
-    // A frame scrolled entirely off screen has nothing to show, so it is not scrolled.
-    const deepest =
-      frameHeight > 0
-        ? Math.max(
-            0,
-            Math.min(
-              layout.scrollHeight - frameHeight,
-              MAX_PAGE_HEIGHT - viewportHeight,
-            ),
-          )
-        : 0;
-    const scrolls = [0];
-    for (let scroll = frameHeight; scroll < deepest; scroll += frameHeight) {
-      scrolls.push(scroll);
-    }
-    if (deepest > 0) {
-      scrolls.push(deepest);
-    }
+    const across = (top: number, bottom: number): Rect => ({
+      x: 0,
+      y: top,
+      width: viewportWidth,
+      height: bottom - top,
+    });
+    const framed = (top: number): Rect => ({
+      x: layout.frameLeft,
+      y: top,
+      width: layout.frameWidth,
+      height: frameBottom - top,
+    });
+    const deepest = deepestScroll(layout);
+    const scrolls = scrollsDownTo(deepest, frameHeight);
     let coveredTo = 0;
     const slices = scrolls.map((scroll, index) => {
-      const from = index === 0 ? 0 : frameTop + coveredTo - scroll;
-      const to = index === scrolls.length - 1 ? viewportHeight : frameBottom;
+      const rects = [
+        index === 0
+          ? across(0, frameBottom)
+          : framed(frameTop + coveredTo - scroll),
+      ];
+      if (index === scrolls.length - 1) {
+        rects.push(across(frameBottom, viewportHeight));
+      }
       coveredTo = scroll + frameHeight;
-      return { scroll, from, to };
+      return { scroll, rects: rects.filter((rect) => rect.height > 0) };
     });
-    return {
-      width: layout.viewportWidth,
-      height: viewportHeight + deepest,
-      slices,
-    };
+    return { width: viewportWidth, height: viewportHeight + deepest, slices };
   }
 }

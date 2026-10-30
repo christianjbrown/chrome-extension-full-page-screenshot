@@ -36,10 +36,13 @@ describe("FullPageShooter", () => {
       [4, 1200, true],
     ]);
     expect(capture.capture).toHaveBeenCalledWith(2);
+    const rows = (y: number, height: number) => [
+      { x: 0, y, width: 1200, height },
+    ];
     expect(stitcher.add.mock.calls).toEqual([
-      ["data:1", 0, 800, 0],
-      ["data:2", 0, 800, 800],
-      ["data:3", 400, 800, 1600],
+      ["data:1", rows(0, 800), 0],
+      ["data:2", rows(0, 800), 800],
+      ["data:3", rows(400, 400), 1200],
     ]);
     expect(indicator.showProgress.mock.calls).toEqual([[0], [1 / 3], [2 / 3]]);
     expect(page.restore).toHaveBeenCalledWith(4);
@@ -53,7 +56,11 @@ describe("FullPageShooter", () => {
 
     await shooter.shoot(target);
 
-    expect(stitcher.add).toHaveBeenLastCalledWith("data:3", 400, 800, 1550);
+    expect(stitcher.add).toHaveBeenLastCalledWith(
+      "data:3",
+      [{ x: 0, y: 400, width: 1200, height: 400 }],
+      1150,
+    );
   });
 
   it("puts the page back even when a capture fails", async () => {
