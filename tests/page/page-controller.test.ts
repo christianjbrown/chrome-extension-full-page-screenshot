@@ -11,16 +11,29 @@ function setUp() {
   const header = fakeElement({ position: "fixed" });
   const elements = new FakeElements([header]);
   const ledger = new StyleLedger();
-  const settler = { settle: vi.fn(() => Promise.resolve()) };
+  const steps: string[] = [];
+  const settler = {
+    settle: vi.fn(() => {
+      steps.push("settle");
+      return Promise.resolve();
+    }),
+  };
+  const images = {
+    waitForVisible: vi.fn(() => {
+      steps.push("images");
+      return Promise.resolve(false);
+    }),
+  };
   const controller = new PageController({
     scrollers: { find: () => new WindowScroller(window, root) },
     ledger,
     freezer: new LayoutFreezer(elements, ledger),
     settler,
+    images,
     root,
     viewport: window,
   });
-  return { window, root, header, settler, controller };
+  return { window, root, header, settler, images, steps, controller };
 }
 
 describe("PageController", () => {
@@ -40,8 +53,8 @@ describe("PageController", () => {
     expect(root.style.getPropertyValue("scrollbar-width")).toBe("none");
   });
 
-  it("scrolls, hides fixed elements when asked, waits, and says where it landed", async () => {
-    const { window, header, settler, controller } = setUp();
+  it("scrolls, hides fixed elements when asked, waits for the page and its images, and says where it landed", async () => {
+    const { window, header, settler, steps, controller } = setUp();
     await controller.prepare();
     window.scrollTo.mockImplementation(() => {
       window.scrollY = 2200;
@@ -50,6 +63,20 @@ describe("PageController", () => {
     await expect(controller.scrollTo(2400, true)).resolves.toBe(2200);
     expect(header.style.getPropertyValue("opacity")).toBe("0");
     expect(settler.settle).toHaveBeenCalled();
+    expect(steps).toEqual(["settle", "images"]);
+  });
+
+  it("lets the page paint again after waiting for images", async () => {
+    const { images, steps, controller } = setUp();
+    images.waitForVisible.mockImplementationOnce(() => {
+      steps.push("images");
+      return Promise.resolve(true);
+    });
+    await controller.prepare();
+
+    await controller.scrollTo(0, false);
+
+    expect(steps).toEqual(["settle", "images", "settle"]);
   });
 
   it("refuses to scroll before it is prepared", async () => {

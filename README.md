@@ -9,6 +9,7 @@ One button in your Chrome toolbar. Click it and a PNG of the whole page, top to 
 - **No headers stamped down the page every screenful.** Sticky bars go back to their normal spot and fixed headers show once, at the top, like a human would expect.
 - **Web apps too.** Pages that scroll inside a panel, with a fixed shell around the content, get the panel's full contents.
 - **Your page left exactly as you had it.** Same scroll position, same styles, as if nothing happened. 🧹
+- **Lazy-loaded images actually show up.** After each scroll it waits for the pictures that just came into view to finish loading (up to 2 seconds each screenful), so you don't get grey boxes where the photos should be.
 - **Ridiculously long pages** get cut into numbered parts instead of crashing, because Chrome won't make an image past about 16,000 pixels tall.
 - **A progress badge** on the button while it works (`20%`, `40%`...), and a red `!` with the reason if something goes wrong.
 - **Alt+Shift+S** does the same as clicking, for keyboard people.
@@ -64,6 +65,7 @@ A page too tall for one image comes out as `...-part-1.png`, `...-part-2.png` an
 - **It takes a second or two per screenful.** Chrome only lets an extension grab the screen twice a second, so a long page takes a little while. Worth it.
 - **Chrome's own pages** (`chrome://` anything, the Web Store, other extensions) are off limits to every extension. You'll get a red `!` saying so.
 - **Local files** (`file://`) need **Allow access to file URLs** turned on in the extension's details in `chrome://extensions`.
+- **Endless feeds get what's loaded when you click.** It captures down to where the page ends at that moment, and doesn't chase new posts as they load in. Want more of the feed? Scroll down until you've got what you want, then click. 📜
 - **It stops at 60,000 pixels tall** (CSS pixels), so an endless feed doesn't keep you waiting forever.
 - **Getting a save dialog every time?** That's Chrome's **Ask where to save each file before downloading** setting. Turn it off in `chrome://settings/downloads` and files go straight to your downloads folder.
 - **A red `!` on the button** means something went wrong. Hover over it and the tooltip says what.

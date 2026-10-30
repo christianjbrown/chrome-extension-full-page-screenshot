@@ -1,4 +1,5 @@
 import type { PageLayout } from "../shared/messages";
+import type { ImageWaiter } from "./image-waiter";
 import type { LayoutFreezer } from "./layout-freezer";
 import type { Scroller } from "./scrollers";
 import type { Settler } from "./settler";
@@ -20,6 +21,7 @@ export interface PageControllerDependencies {
   ledger: StyleLedger;
   freezer: LayoutFreezer;
   settler: Settler;
+  images: ImageWaiter;
   root: Styled;
   viewport: { innerWidth: number; innerHeight: number };
 }
@@ -60,6 +62,10 @@ export class PageController implements PageCommands {
     scroller.scrollTo(y);
     this.deps.freezer.freeze(hideFixed);
     await this.deps.settler.settle();
+    // An image that has just finished loading still has to be painted.
+    if (await this.deps.images.waitForVisible()) {
+      await this.deps.settler.settle();
+    }
     return scroller.position();
   }
 

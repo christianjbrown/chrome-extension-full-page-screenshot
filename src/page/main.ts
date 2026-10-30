@@ -3,6 +3,7 @@
 // the copy a previous click left behind.
 import { CommandRouter } from "../shared/command-router";
 import type { PageMessage, Reply } from "../shared/messages";
+import { VisibleImageWaiter } from "./image-waiter";
 import { LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
 import { DomElements, type PageElement } from "./page-elements";
@@ -44,6 +45,12 @@ const controller = new PageController({
     (callback) => requestAnimationFrame(callback),
     (callback, ms) => setTimeout(callback, ms),
     100,
+  ),
+  images: new VisibleImageWaiter(
+    document,
+    window,
+    (callback, ms) => setTimeout(callback, ms),
+    2000,
   ),
   root,
   viewport: window,
