@@ -1,5 +1,5 @@
 {
-  "name": "full-page-screenshot-chrome-extension",
+  "name": "chrome-extension-full-page-screenshot",
   "version": "1.0.0",
   "private": true,
   "description": "Chrome extension: one click saves a full-page PNG screenshot of the current tab.",
