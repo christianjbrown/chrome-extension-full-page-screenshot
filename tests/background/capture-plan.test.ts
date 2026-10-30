@@ -7,6 +7,8 @@ const plan = (layout: {
   viewportHeight?: number;
   frameTop?: number;
   frameHeight?: number;
+  frameLeft?: number;
+  frameWidth?: number;
   scrollHeight: number;
 }) =>
   new SlicePlanner().plan({
@@ -14,15 +16,24 @@ const plan = (layout: {
     viewportHeight: layout.viewportHeight ?? 1000,
     frameTop: layout.frameTop ?? 0,
     frameHeight: layout.frameHeight ?? 1000,
+    frameLeft: layout.frameLeft ?? 0,
+    frameWidth: layout.frameWidth ?? 1200,
     scrollHeight: layout.scrollHeight,
   });
+
+const across = (y: number, height: number) => ({
+  x: 0,
+  y,
+  width: 1200,
+  height,
+});
 
 describe("SlicePlanner", () => {
   it("takes a page that fits in one slice", () => {
     expect(plan({ scrollHeight: 1000 })).toEqual({
       width: 1200,
       height: 1000,
-      slices: [{ scroll: 0, from: 0, to: 1000 }],
+      slices: [{ scroll: 0, rects: [across(0, 1000)] }],
     });
   });
 
@@ -35,17 +46,17 @@ describe("SlicePlanner", () => {
       width: 1200,
       height: 2500,
       slices: [
-        { scroll: 0, from: 0, to: 1000 },
-        { scroll: 1000, from: 0, to: 1000 },
-        { scroll: 1500, from: 500, to: 1000 },
+        { scroll: 0, rects: [across(0, 1000)] },
+        { scroll: 1000, rects: [across(0, 1000)] },
+        { scroll: 1500, rects: [across(500, 500)] },
       ],
     });
   });
 
   it("needs no partial slice when the page is an exact number of viewports", () => {
     expect(plan({ scrollHeight: 2000 }).slices).toEqual([
-      { scroll: 0, from: 0, to: 1000 },
-      { scroll: 1000, from: 0, to: 1000 },
+      { scroll: 0, rects: [across(0, 1000)] },
+      { scroll: 1000, rects: [across(0, 1000)] },
     ]);
   });
 
@@ -56,17 +67,40 @@ describe("SlicePlanner", () => {
       width: 1200,
       height: 2200,
       slices: [
-        { scroll: 0, from: 0, to: 900 },
-        { scroll: 800, from: 100, to: 900 },
-        { scroll: 1200, from: 500, to: 1000 },
+        { scroll: 0, rects: [across(0, 900)] },
+        { scroll: 800, rects: [across(100, 800)] },
+        { scroll: 1200, rects: [across(500, 400), across(900, 100)] },
       ],
     });
+  });
+
+  it("takes what sits beside an inner frame only once, in the first slice", () => {
+    const framed = (y: number, height: number) => ({
+      x: 250,
+      y,
+      width: 700,
+      height,
+    });
+
+    expect(
+      plan({
+        frameTop: 64,
+        frameHeight: 936,
+        frameLeft: 250,
+        frameWidth: 700,
+        scrollHeight: 2000,
+      }).slices,
+    ).toEqual([
+      { scroll: 0, rects: [across(0, 1000)] },
+      { scroll: 936, rects: [framed(64, 936)] },
+      { scroll: 1064, rects: [framed(872, 128)] },
+    ]);
   });
 
   it("does not scroll a frame that is off screen", () => {
     expect(
       plan({ frameTop: 1000, frameHeight: 0, scrollHeight: 5000 }).slices,
-    ).toEqual([{ scroll: 0, from: 0, to: 1000 }]);
+    ).toEqual([{ scroll: 0, rects: [across(0, 1000)] }]);
   });
 
   it("stops at the height cap on a page that goes on and on", () => {

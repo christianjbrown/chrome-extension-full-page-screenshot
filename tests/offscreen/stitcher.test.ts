@@ -2,6 +2,8 @@ import { CanvasLimitCutter } from "../../src/offscreen/part-layout";
 import { Stitcher } from "../../src/offscreen/stitcher";
 import { FakeSurface, fakeBitmap } from "./fakes";
 
+const row = (y: number, height: number) => ({ x: 0, y, width: 1200, height });
+
 function setUp(parts?: { top: number; height: number }[]) {
   const surfaces: FakeSurface[] = [];
   const images = [
@@ -37,30 +39,47 @@ describe("Stitcher", () => {
     const { stitcher, surfaces, images } = setUp();
     await stitcher.begin(1200, 2000);
 
-    await stitcher.add("data:1", 0, 800, 0);
-    await stitcher.add("data:2", 600, 800, 1800);
+    await stitcher.add("data:1", [row(0, 800)], 0);
+    await stitcher.add("data:2", [row(600, 200)], 1200);
     const urls = await stitcher.finish();
 
     expect(urls).toEqual(["blob:1"]);
     expect(surfaces).toHaveLength(1);
     expect(surfaces[0]).toMatchObject({ width: 2400, height: 4000 });
     expect(surfaces[0]!.draws).toEqual([
-      { sourceY: 0, height: 1600, targetY: 0 },
-      { sourceY: 1200, height: 400, targetY: 3600 },
+      { x: 0, sourceY: 0, width: 2400, height: 1600, targetY: 0 },
+      { x: 0, sourceY: 1200, width: 2400, height: 400, targetY: 3600 },
     ]);
     expect(images[0]!.close).toHaveBeenCalled();
     expect(images[1]!.close).toHaveBeenCalled();
+  });
+
+  it("copies each box of a slice into its own columns", async () => {
+    const { stitcher, surfaces } = setUp();
+    await stitcher.begin(1200, 1000);
+
+    await stitcher.add(
+      "data:1",
+      [{ x: 200, y: 100, width: 900, height: 500 }, row(600, 200)],
+      200,
+    );
+    await stitcher.finish();
+
+    expect(surfaces[0]!.draws).toEqual([
+      { x: 400, sourceY: 200, width: 1800, height: 1000, targetY: 600 },
+      { x: 0, sourceY: 1200, width: 2400, height: 400, targetY: 1600 },
+    ]);
   });
 
   it("clips a slice that runs past the bottom of the page", async () => {
     const { stitcher, surfaces } = setUp();
     await stitcher.begin(1200, 1000);
 
-    await stitcher.add("data:1", 0, 800, 600);
+    await stitcher.add("data:1", [row(0, 800)], 600);
     await stitcher.finish();
 
     expect(surfaces[0]!.draws).toEqual([
-      { sourceY: 0, height: 800, targetY: 1200 },
+      { x: 0, sourceY: 0, width: 2400, height: 800, targetY: 1200 },
     ]);
   });
 
@@ -73,16 +92,16 @@ describe("Stitcher", () => {
     ]);
     await stitcher.begin(1200, 2000);
 
-    await stitcher.add("data:1", 0, 800, 0);
+    await stitcher.add("data:1", [row(0, 800)], 0);
     expect(surfaces.map((surface) => surface.height)).toEqual([1000, 1000]);
-    await stitcher.add("data:2", 0, 800, 1200);
+    await stitcher.add("data:2", [row(0, 800)], 1200);
     expect(surfaces[0]!.written).toBe(true);
     expect(surfaces[1]!.written).toBe(true);
     expect(surfaces[1]!.draws).toEqual([
-      { sourceY: 0, height: 1600, targetY: -1000 },
+      { x: 0, sourceY: 0, width: 2400, height: 1600, targetY: -1000 },
     ]);
     expect(surfaces[3]!.draws).toEqual([
-      { sourceY: 0, height: 1600, targetY: -600 },
+      { x: 0, sourceY: 0, width: 2400, height: 1600, targetY: -600 },
     ]);
     const urls = await stitcher.finish();
 
@@ -96,7 +115,7 @@ describe("Stitcher", () => {
     ]);
     await stitcher.begin(1200, 1600);
 
-    await stitcher.add("data:1", 0, 800, 0);
+    await stitcher.add("data:1", [row(0, 800)], 0);
 
     await expect(stitcher.finish()).resolves.toEqual(["blob:1"]);
   });
@@ -123,17 +142,19 @@ describe("Stitcher", () => {
     await stitcher.begin(1, 1);
     await failing.begin(1200, 10);
 
-    await expect(failing.add("data:1", 0, 800, 0)).rejects.toThrow("too big");
+    await expect(failing.add("data:1", [row(0, 800)], 0)).rejects.toThrow(
+      "too big",
+    );
     expect(images[0]!.close).toHaveBeenCalled();
   });
 
   it("starts afresh on begin", async () => {
     const { stitcher, surfaces } = setUp();
     await stitcher.begin(1200, 800);
-    await stitcher.add("data:1", 0, 800, 0);
+    await stitcher.add("data:1", [row(0, 800)], 0);
 
     await stitcher.begin(600, 800);
-    await stitcher.add("data:2", 0, 800, 0);
+    await stitcher.add("data:2", [row(0, 800)], 0);
 
     expect(surfaces[1]).toMatchObject({ width: 2400, height: 3200 });
   });

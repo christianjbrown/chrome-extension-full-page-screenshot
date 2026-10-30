@@ -1,14 +1,24 @@
 // Everything the service worker, the page and the offscreen document say to each other.
 
-// Where the page scrolls, in CSS pixels. The frame is the band of the viewport
+// Where the page scrolls, in CSS pixels. The frame is the part of the viewport
 // that scrolls: all of it for a normal page, or one inner element's box when
-// the page scrolls inside that instead.
+// the page scrolls inside that instead, as Gmail's message pane does.
 export interface PageLayout {
   viewportWidth: number;
   viewportHeight: number;
   frameTop: number;
   frameHeight: number;
+  frameLeft: number;
+  frameWidth: number;
   scrollHeight: number;
+}
+
+// A box in the viewport, in CSS pixels.
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export type PageMessage =
@@ -22,9 +32,8 @@ export type OffscreenMessage =
       target: "offscreen";
       type: "slice";
       dataUrl: string;
-      from: number;
-      to: number;
-      y: number;
+      rects: Rect[];
+      scroll: number;
     }
   | { target: "offscreen"; type: "finish" };
 

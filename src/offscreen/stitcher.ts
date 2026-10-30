@@ -1,13 +1,15 @@
 import type { ObjectUrls } from "./blob-urls";
 import type { ImageDecoder } from "./image-decoder";
 import type { Part, PartCutter } from "./part-layout";
-import type { Bitmap, Surface, SurfaceFactory } from "./surfaces";
+import type { Rect } from "../shared/messages";
+import type { Bitmap, Box, Surface, SurfaceFactory } from "./surfaces";
 
 // What the service worker asks of the offscreen document.
 interface StitchCommands {
   begin(width: number, height: number): Promise<void>;
-  // Rows [from, to) of the viewport capture belong at y in the page, all in CSS pixels.
-  add(dataUrl: string, from: number, to: number, y: number): Promise<void>;
+  // Each box of the viewport capture belongs in the page at its own position
+  // plus the scroll, all in CSS pixels.
+  add(dataUrl: string, rects: Rect[], scroll: number): Promise<void>;
   // Blob URLs of the finished PNGs, one per part, top to bottom.
   finish(): Promise<string[]>;
 }
@@ -46,24 +48,13 @@ export class Stitcher implements StitchCommands {
     return Promise.resolve();
   }
 
-  async add(
-    dataUrl: string,
-    from: number,
-    to: number,
-    y: number,
-  ): Promise<void> {
+  async add(dataUrl: string, rects: Rect[], scroll: number): Promise<void> {
     const image = await this.deps.decoder.decode(dataUrl);
     try {
       const picture = this.pictureFor(image);
-      const top = Math.round(y * picture.scale);
-      const bottom = Math.min(
-        picture.height,
-        top + Math.round((to - from) * picture.scale),
-      );
-      await this.paint(picture, image, Math.round(from * picture.scale), {
-        top,
-        height: bottom - top,
-      });
+      for (const rect of rects) {
+        await this.paint(picture, image, rect, scroll);
+      }
     } finally {
       image.close();
     }
@@ -101,25 +92,42 @@ export class Stitcher implements StitchCommands {
   private async paint(
     picture: Picture,
     image: Bitmap,
-    sourceY: number,
-    target: Part,
+    rect: Rect,
+    scroll: number,
   ): Promise<void> {
+    const { source, top } = this.toDevice(picture, rect, scroll);
     for (const sheet of picture.sheets) {
-      if (sheet.top + sheet.height <= target.top) {
+      if (sheet.top + sheet.height <= top) {
         await this.writeOut(sheet);
-      } else if (sheet.top < target.top + target.height) {
+      } else if (sheet.top < top + source.height) {
         sheet.surface ??= this.deps.surfaces.create(
           picture.width,
           sheet.height,
         );
-        sheet.surface.draw(
-          image,
-          sourceY,
-          target.height,
-          target.top - sheet.top,
-        );
+        sheet.surface.draw(image, source, top - sheet.top);
       }
     }
+  }
+
+  // Where the box sits in the capture and in the picture, in device pixels,
+  // cut off at the bottom of the picture.
+  private toDevice(
+    picture: Picture,
+    rect: Rect,
+    scroll: number,
+  ): { source: Box; top: number } {
+    const scaled = (value: number) => Math.round(value * picture.scale);
+    const top = scaled(rect.y + scroll);
+    const height = Math.min(picture.height, top + scaled(rect.height)) - top;
+    return {
+      source: {
+        x: scaled(rect.x),
+        y: scaled(rect.y),
+        width: scaled(rect.width),
+        height,
+      },
+      top,
+    };
   }
 
   private async writeOut(sheet: Sheet): Promise<void> {

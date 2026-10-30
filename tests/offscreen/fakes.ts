@@ -1,5 +1,5 @@
 import type { Mock } from "vitest";
-import type { Bitmap, Surface } from "../../src/offscreen/surfaces";
+import type { Bitmap, Box, Surface } from "../../src/offscreen/surfaces";
 
 export function fakeBitmap(
   width: number,
@@ -11,7 +11,9 @@ export function fakeBitmap(
 }
 
 export interface Draw {
+  x: number;
   sourceY: number;
+  width: number;
   height: number;
   targetY: number;
 }
@@ -25,8 +27,14 @@ export class FakeSurface implements Surface {
     readonly height: number,
   ) {}
 
-  draw(_image: Bitmap, sourceY: number, height: number, targetY: number): void {
-    this.draws.push({ sourceY, height, targetY });
+  draw(_image: Bitmap, source: Box, targetY: number): void {
+    this.draws.push({
+      x: source.x,
+      sourceY: source.y,
+      width: source.width,
+      height: source.height,
+      targetY,
+    });
   }
 
   toPng(): Promise<Blob> {

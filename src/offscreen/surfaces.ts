@@ -4,10 +4,18 @@ export interface Bitmap {
   close(): void;
 }
 
+// A box in an image, in device pixels.
+export interface Box {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 // One output image being painted, in device pixels.
 export interface Surface {
-  // Copies rows [sourceY, sourceY + height) of the image to targetY.
-  draw(image: Bitmap, sourceY: number, height: number, targetY: number): void;
+  // Copies a box of the image to the same columns, at targetY.
+  draw(image: Bitmap, source: Box, targetY: number): void;
   // The finished PNG. The surface's memory is given back afterwards.
   toPng(): Promise<Blob>;
 }
@@ -48,15 +56,15 @@ class CanvasSurface implements Surface {
     private readonly context: Canvas2d,
   ) {}
 
-  draw(image: Bitmap, sourceY: number, height: number, targetY: number): void {
-    const width = image.width;
+  draw(image: Bitmap, source: Box, targetY: number): void {
+    const { x, y, width, height } = source;
     this.context.drawImage(
       image as never,
-      0,
-      sourceY,
+      x,
+      y,
       width,
       height,
-      0,
+      x,
       targetY,
       width,
       height,

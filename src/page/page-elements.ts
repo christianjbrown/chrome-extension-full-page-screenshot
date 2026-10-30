@@ -10,8 +10,9 @@ export interface PageElement extends Styled {
   clientHeight: number;
   clientWidth: number;
   clientTop: number;
+  clientLeft: number;
   scrollTop: number;
-  getBoundingClientRect(): { top: number };
+  getBoundingClientRect(): { top: number; left: number };
 }
 
 // Every element on the page, and how the page's styles position each one.

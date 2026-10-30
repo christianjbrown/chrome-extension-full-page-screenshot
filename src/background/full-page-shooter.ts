@@ -42,7 +42,7 @@ export class FullPageShooter implements Shooter {
       await indicator.showProgress(index / plan.slices.length);
       const at = await page.scrollTo(target.tabId, slice.scroll, index > 0);
       const dataUrl = await capture.capture(target.windowId);
-      await stitcher.add(dataUrl, slice.from, slice.to, slice.from + at);
+      await stitcher.add(dataUrl, slice.rects, at);
     }
   }
 }
