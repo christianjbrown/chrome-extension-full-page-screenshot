@@ -2,6 +2,7 @@
 // worker. It exists because a service worker cannot make a blob URL, and a full
 // page PNG is far too big to download as a data URL.
 import { CommandRouter } from "../shared/command-router";
+import { offscreenGuards } from "../shared/message-guards";
 import type { OffscreenMessage, Reply } from "../shared/messages";
 import { BlobUrls } from "./blob-urls";
 import { DataUrlDecoder } from "./image-decoder";
@@ -19,14 +20,19 @@ const stitcher = new Stitcher({
   surfaces: new OffscreenCanvasSurfaces(OffscreenCanvas),
   urls: new BlobUrls(URL),
 });
-const router = new CommandRouter<OffscreenMessage>("offscreen", {
-  begin: (message) => stitcher.begin(message.width, message.height),
-  slice: (message) =>
-    stitcher.add(message.dataUrl, message.rects, message.scroll),
-  finish: () => stitcher.finish(),
-});
+const router = new CommandRouter<OffscreenMessage>(
+  "offscreen",
+  {
+    begin: (message) => stitcher.begin(message.width, message.height),
+    slice: (message) =>
+      stitcher.add(message.dataUrl, message.rects, message.scroll),
+    finish: () => stitcher.finish(),
+  },
+  offscreenGuards,
+  chrome.runtime.id,
+);
 
 chrome.runtime.onMessage.addListener(
-  (message: unknown, _sender, sendResponse: (reply: Reply<unknown>) => void) =>
-    router.route(message, sendResponse),
+  (message: unknown, sender, sendResponse: (reply: Reply<unknown>) => void) =>
+    router.route(message, sender, sendResponse),
 );

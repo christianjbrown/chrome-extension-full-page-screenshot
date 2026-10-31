@@ -2,6 +2,7 @@
 // the service worker. It is injected again on every click, so it first retires
 // the copy a previous click left behind.
 import { CommandRouter } from "../shared/command-router";
+import { pageGuards } from "../shared/message-guards";
 import type { PageMessage, Reply } from "../shared/messages";
 import { VisibleImageWaiter } from "./image-waiter";
 import { LayoutFreezer } from "./layout-freezer";
@@ -55,13 +56,18 @@ const controller = new PageController({
   root,
   viewport: window,
 });
-const router = new CommandRouter<PageMessage>("page", {
-  prepare: () => controller.prepare(),
-  scroll: (message) => controller.scrollTo(message.y, message.hideFixed),
-  restore: () => controller.restore(),
-});
-const listener: Listener = (message, _sender, reply) =>
-  router.route(message, reply);
+const router = new CommandRouter<PageMessage>(
+  "page",
+  {
+    prepare: () => controller.prepare(),
+    scroll: (message) => controller.scrollTo(message.y, message.hideFixed),
+    restore: () => controller.restore(),
+  },
+  pageGuards,
+  chrome.runtime.id,
+);
+const listener: Listener = (message, sender, reply) =>
+  router.route(message, sender as { id?: string }, reply);
 
 chrome.runtime.onMessage.addListener(listener);
 globals[KEY] = { listener, controller };
