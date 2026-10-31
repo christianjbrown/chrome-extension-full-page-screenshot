@@ -45,11 +45,22 @@ type TestMessage =
   | { target: "here"; type: "double"; n: number }
   | { target: "here"; type: "fail" };
 
+const ME = { id: "me" };
+
 function router() {
-  return new CommandRouter<TestMessage>("here", {
-    double: (message) => Promise.resolve(message.n * 2),
-    fail: () => Promise.reject(new Error("failed")),
-  });
+  return new CommandRouter<TestMessage>(
+    "here",
+    {
+      double: (message) => Promise.resolve(message.n * 2),
+      fail: () => Promise.reject(new Error("failed")),
+    },
+    {
+      double: (message): message is TestMessage & { type: "double" } =>
+        typeof (message as { n?: unknown }).n === "number",
+      fail: (_message): _message is TestMessage & { type: "fail" } => true,
+    },
+    "me",
+  );
 }
 
 describe("CommandRouter", () => {
@@ -58,6 +69,7 @@ describe("CommandRouter", () => {
 
     const later = router().route(
       { target: "here", type: "double", n: 4 },
+      ME,
       reply,
     );
 
@@ -70,7 +82,7 @@ describe("CommandRouter", () => {
   it("answers with the handler's error", async () => {
     const reply = vi.fn();
 
-    router().route({ target: "here", type: "fail" }, reply);
+    router().route({ target: "here", type: "fail" }, ME, reply);
 
     await vi.waitFor(() => {
       expect(reply).toHaveBeenCalledWith({ ok: false, error: "failed" });
@@ -80,7 +92,7 @@ describe("CommandRouter", () => {
   it("ignores messages for another context", () => {
     const reply = vi.fn();
 
-    expect(router().route({ target: "there", type: "double" }, reply)).toBe(
+    expect(router().route({ target: "there", type: "double" }, ME, reply)).toBe(
       false,
     );
     expect(reply).not.toHaveBeenCalled();
@@ -89,9 +101,38 @@ describe("CommandRouter", () => {
   it("ignores types it has no handler for", () => {
     const reply = vi.fn();
 
-    expect(router().route({ target: "here", type: "other" }, reply)).toBe(
+    expect(router().route({ target: "here", type: "other" }, ME, reply)).toBe(
       false,
     );
+    expect(reply).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["another extension", { id: "them" }],
+    ["a page with no id", {}],
+    ["no sender", undefined],
+  ])("ignores a message from %s", (_who, sender) => {
+    const reply = vi.fn();
+
+    expect(
+      router().route({ target: "here", type: "fail" }, sender, reply),
+    ).toBe(false);
+    expect(reply).not.toHaveBeenCalled();
+  });
+
+  it.each(["constructor", "__proto__", "toString", 5, undefined])(
+    "ignores the inherited or odd type %s",
+    (type) => {
+      expect(router().route({ target: "here", type }, ME, vi.fn())).toBe(false);
+    },
+  );
+
+  it("ignores a message whose fields are the wrong type", () => {
+    const reply = vi.fn();
+
+    expect(
+      router().route({ target: "here", type: "double", n: "4" }, ME, reply),
+    ).toBe(false);
     expect(reply).not.toHaveBeenCalled();
   });
 });

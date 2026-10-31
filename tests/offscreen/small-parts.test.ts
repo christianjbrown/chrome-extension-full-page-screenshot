@@ -26,6 +26,23 @@ describe("DataUrlDecoder", () => {
   });
 });
 
+describe("DataUrlDecoder input", () => {
+  it.each([
+    "https://evil.example/x.png",
+    "blob:https://evil.example/1",
+    "data:text/html;base64,AA",
+    "data:image/png,AA",
+    "file:///etc/passwd",
+    42,
+  ])("refuses %s without fetching it", async (url) => {
+    const fetch = vi.fn();
+    const decoder = new DataUrlDecoder(fetch, vi.fn());
+
+    await expect(decoder.decode(url as string)).rejects.toThrow("not a PNG");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
 describe("BlobUrls", () => {
   it("makes an object URL for the blob", () => {
     const blob = new Blob(["x"]);
@@ -58,5 +75,17 @@ describe("CanvasLimitCutter", () => {
       { top: 0, height: tallest },
       { top: tallest, height: 1 },
     ]);
+  });
+
+  it.each([
+    [0, 100],
+    [-5, 100],
+    [Number.NaN, 100],
+    [Infinity, 100],
+    [100, Number.NaN],
+    [100, -1],
+    [100, Infinity],
+  ])("refuses a %d by %d image", (width, height) => {
+    expect(() => cutter.partsFor(width, height)).toThrow("unusable size");
   });
 });

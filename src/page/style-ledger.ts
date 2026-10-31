@@ -16,9 +16,17 @@ interface Original {
   priority: string;
 }
 
+export interface StyleOverrides {
+  override(target: Styled, property: string, value: string): void;
+}
+
+export interface StyleRestoration {
+  restore(): void;
+}
+
 // Overrides inline styles for the capture and remembers exactly what was there
 // before, so the page is left as it was found.
-export class StyleLedger {
+export class StyleLedger implements StyleOverrides, StyleRestoration {
   private originals: Original[] = [];
 
   override(target: Styled, property: string, value: string): void {

@@ -1,3 +1,4 @@
+import { DeviceGeometry } from "../../src/offscreen/device-geometry";
 import { CanvasLimitCutter } from "../../src/offscreen/part-layout";
 import { Stitcher } from "../../src/offscreen/stitcher";
 import { FakeSurface, fakeBitmap } from "./fakes";
@@ -24,6 +25,7 @@ function setUp(parts?: { top: number; height: number }[]) {
         return surface;
       }),
     },
+    geometry: new DeviceGeometry(),
     urls: {
       create: (blob: Blob) => {
         urls.push(blob);
@@ -137,6 +139,7 @@ describe("Stitcher", () => {
           throw new Error("too big");
         },
       },
+      geometry: new DeviceGeometry(),
       urls: { create: () => "blob:x" },
     });
     await stitcher.begin(1, 1);
@@ -157,5 +160,37 @@ describe("Stitcher", () => {
     await stitcher.add("data:2", [row(0, 800)], 0);
 
     expect(surfaces[1]).toMatchObject({ width: 2400, height: 3200 });
+  });
+
+  it.each([
+    [0, 800],
+    [1200, Number.NaN],
+    [-1, 800],
+    [Infinity, 800],
+  ])("refuses to begin a %d by %d page", async (width, height) => {
+    const { stitcher } = setUp();
+
+    await expect(stitcher.begin(width, height)).rejects.toThrow(
+      "unusable size",
+    );
+  });
+
+  it.each([Number.NaN, Infinity])("refuses a scroll of %d", async (scroll) => {
+    const { stitcher } = setUp();
+    await stitcher.begin(1200, 800);
+
+    await expect(stitcher.add("data:1", [row(0, 800)], scroll)).rejects.toThrow(
+      "unusable scroll",
+    );
+  });
+
+  it("refuses a capture with no width", async () => {
+    const { stitcher, images } = setUp();
+    images[0] = fakeBitmap(0, 100);
+    await stitcher.begin(1200, 800);
+
+    await expect(stitcher.add("data:1", [row(0, 800)], 0)).rejects.toThrow(
+      "no width",
+    );
   });
 });

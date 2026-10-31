@@ -1,9 +1,18 @@
 import { CapturableTabs } from "../../src/background/capturable-tabs";
+import {
+  BrowserPageRule,
+  LocalFileRule,
+  WebStoreRule,
+} from "../../src/background/capture-rules";
 
 const tabs = (fileAccess = false) =>
-  new CapturableTabs({
-    isAllowedFileSchemeAccess: () => Promise.resolve(fileAccess),
-  });
+  new CapturableTabs([
+    new BrowserPageRule(),
+    new WebStoreRule(),
+    new LocalFileRule({
+      isAllowedFileSchemeAccess: () => Promise.resolve(fileAccess),
+    }),
+  ]);
 
 describe("CapturableTabs", () => {
   it("turns an ordinary web page into a capture target", async () => {
@@ -75,5 +84,18 @@ describe("CapturableTabs", () => {
     await expect(
       tabs().targetFor({ id: 1, windowId: 1 }),
     ).resolves.toMatchObject({ tabId: 1, title: undefined });
+  });
+
+  it("is blocked by the first rule that says so, and by any rule it is given", async () => {
+    const first = { blocks: () => Promise.resolve(true), reason: "first" };
+    const second = { blocks: () => Promise.resolve(true), reason: "second" };
+    const tab = { id: 1, windowId: 1, url: "https://example.com/" };
+
+    await expect(
+      new CapturableTabs([first, second]).targetFor(tab),
+    ).rejects.toThrow("first");
+    await expect(new CapturableTabs([]).targetFor(tab)).resolves.toMatchObject({
+      tabId: 1,
+    });
   });
 });

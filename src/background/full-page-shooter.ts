@@ -1,6 +1,6 @@
 import type { CaptureTarget } from "./capturable-tabs";
 import type { CapturePlanner } from "./capture-plan";
-import type { StitchDriver } from "./offscreen-stitcher";
+import type { StitchSession } from "./offscreen-stitcher";
 import type { PageDriver } from "./page-client";
 import type { ScreenshotIndicator } from "./screenshot-indicator";
 import type { VisibleTabCapture } from "./visible-tab-capture";
@@ -14,7 +14,7 @@ export interface FullPageShooterDependencies {
   page: PageDriver;
   planner: CapturePlanner;
   capture: VisibleTabCapture;
-  stitcher: StitchDriver;
+  stitcher: StitchSession;
   indicator: ScreenshotIndicator;
 }
 

@@ -16,6 +16,7 @@ function installPage() {
   const header = fakeElement({ position: "fixed" });
   vi.stubGlobal("chrome", {
     runtime: {
+      id: "ext",
       onMessage: {
         addListener: vi.fn((listener: Listener) => listeners.push(listener)),
         removeListener: vi.fn((listener: Listener) => {
@@ -66,7 +67,7 @@ async function load() {
 
 function send(listeners: Listener[], message: unknown): Promise<unknown> {
   return new Promise((resolve) => {
-    listeners[0]!(message, {}, resolve);
+    listeners[0]!(message, { id: "ext" }, resolve);
   });
 }
 
@@ -117,6 +118,26 @@ describe("page script", () => {
     expect(listeners[0]!({ target: "offscreen", type: "x" }, {}, vi.fn())).toBe(
       false,
     );
+  });
+
+  it("ignores a message from another extension or with bad fields", async () => {
+    const { listeners } = installPage();
+    await load();
+
+    expect(
+      listeners[0]!(
+        { target: "page", type: "prepare" },
+        { id: "evil" },
+        vi.fn(),
+      ),
+    ).toBe(false);
+    expect(
+      listeners[0]!(
+        { target: "page", type: "scroll", y: "9", hideFixed: true },
+        { id: "ext" },
+        vi.fn(),
+      ),
+    ).toBe(false);
   });
 
   it("retires the copy a previous click injected, putting its page back", async () => {

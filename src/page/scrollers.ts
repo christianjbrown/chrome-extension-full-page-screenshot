@@ -113,3 +113,24 @@ export class ElementScroller implements Scroller {
     this.element.scrollTop = y;
   }
 }
+
+// Makes the scroller for the window or for an inner element.
+export interface ScrollerFactory {
+  forWindow(): Scroller;
+  forElement(element: PageElement): Scroller;
+}
+
+export class DomScrollerFactory implements ScrollerFactory {
+  constructor(
+    private readonly window: WindowLike,
+    private readonly root: PageElement,
+  ) {}
+
+  forWindow(): Scroller {
+    return new WindowScroller(this.window, this.root);
+  }
+
+  forElement(element: PageElement): Scroller {
+    return new ElementScroller(element, this.window);
+  }
+}

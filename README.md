@@ -12,7 +12,6 @@ One button in your Chrome toolbar. Click it and a PNG of the whole page, top to 
 - **Lazy-loaded images actually show up.** After each scroll it waits for the pictures that just came into view to finish loading (up to 2 seconds each screenful), so you don't get grey boxes where the photos should be.
 - **Ridiculously long pages** get cut into numbered parts instead of crashing, because Chrome won't make an image past about 16,000 pixels tall.
 - **A progress badge** on the button while it works (`20%`, `40%`...), and a red `!` with the reason if something goes wrong.
-- **Alt+Shift+S** does the same as clicking, for keyboard people.
 
 ## Install it 🔧
 
@@ -69,7 +68,6 @@ A page too tall for one image comes out as `...-part-1.png`, `...-part-2.png` an
 - **It stops at 60,000 pixels tall** (CSS pixels), so an endless feed doesn't keep you waiting forever.
 - **Getting a save dialog every time?** That's Chrome's **Ask where to save each file before downloading** setting. Turn it off in `chrome://settings/downloads` and files go straight to your downloads folder.
 - **A red `!` on the button** means something went wrong. Hover over it and the tooltip says what.
-- **Want a different shortcut?** Change it at `chrome://extensions/shortcuts`.
 
 ## Hacking on it 🛠️
 

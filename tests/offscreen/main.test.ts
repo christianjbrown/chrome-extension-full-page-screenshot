@@ -11,6 +11,7 @@ function installBrowser() {
   const drawImage = vi.fn();
   vi.stubGlobal("chrome", {
     runtime: {
+      id: "ext",
       onMessage: {
         addListener: (listener: Listener) => listeners.push(listener),
       },
@@ -49,7 +50,7 @@ function installBrowser() {
 
 function send(listeners: Listener[], message: unknown): Promise<unknown> {
   return new Promise((resolve) => {
-    listeners[0]!(message, {}, resolve);
+    listeners[0]!(message, { id: "ext" }, resolve);
   });
 }
 
@@ -78,5 +79,28 @@ describe("offscreen document", () => {
       send(listeners, { target: "offscreen", type: "finish" }),
     ).resolves.toEqual({ ok: true, value: ["blob:shot"] });
     expect(drawImage).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores slices with bad fields and foreign senders", async () => {
+    vi.resetModules();
+    const { listeners } = installBrowser();
+    await import("../../src/offscreen/main");
+    const slice = {
+      target: "offscreen",
+      type: "slice",
+      dataUrl: "data:image/png;base64,AA",
+      rects: [{ x: 0, y: 0, width: 1, height: 1 }],
+      scroll: 0,
+    };
+    const ask = (message: unknown, id = "ext") =>
+      listeners[0]!(message, { id }, vi.fn());
+
+    expect(ask(slice, "evil")).toBe(false);
+    expect(ask({ ...slice, rects: [{ x: 0 }] })).toBe(false);
+    expect(ask({ ...slice, rects: [null] })).toBe(false);
+    expect(ask({ ...slice, rects: "all" })).toBe(false);
+    expect(ask({ ...slice, dataUrl: 4 })).toBe(false);
+    expect(ask({ ...slice, scroll: Number.NaN })).toBe(false);
+    expect(ask({ target: "offscreen", type: "begin", width: 1 })).toBe(false);
   });
 });

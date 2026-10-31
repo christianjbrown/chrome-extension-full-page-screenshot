@@ -2,12 +2,14 @@
 import type { OffscreenMessage } from "../shared/messages";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { CapturableTabs } from "./capturable-tabs";
+import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
 import { ChromeErrorExplainer } from "./chrome-errors";
 import { DownloadSaver } from "./download-saver";
 import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenStitcher } from "./offscreen-stitcher";
 import { PageClient } from "./page-client";
+import { FinitePageValidator } from "./page-validator";
 import { TimestampedNamer } from "./screenshot-namer";
 import { ScreenshotController } from "./screenshot-controller";
 import { SystemClock } from "./system-clock";
@@ -23,9 +25,18 @@ const stitcher = new OffscreenStitcher(
   "offscreen.html",
 );
 const controller = new ScreenshotController({
-  targets: new CapturableTabs(chrome.extension),
+  targets: new CapturableTabs([
+    new BrowserPageRule(),
+    new WebStoreRule(),
+    new LocalFileRule(chrome.extension),
+  ]),
   shooter: new FullPageShooter({
-    page: new PageClient(chrome.scripting, chrome.tabs, "page.js"),
+    page: new PageClient(
+      chrome.scripting,
+      chrome.tabs,
+      "page.js",
+      new FinitePageValidator(),
+    ),
     planner: new SlicePlanner(),
     capture: new ThrottledCapture(
       chrome.tabs,
