@@ -6,6 +6,7 @@ import { offscreenGuards } from "../shared/message-guards";
 import type { OffscreenMessage, Reply } from "../shared/messages";
 import { BlobUrls } from "./blob-urls";
 import { DataUrlDecoder } from "./image-decoder";
+import { DeviceGeometry } from "./device-geometry";
 import { CanvasLimitCutter } from "./part-layout";
 import { Stitcher } from "./stitcher";
 import { OffscreenCanvasSurfaces } from "./surfaces";
@@ -18,6 +19,7 @@ const stitcher = new Stitcher({
   ),
   cutter: new CanvasLimitCutter(),
   surfaces: new OffscreenCanvasSurfaces(OffscreenCanvas),
+  geometry: new DeviceGeometry(),
   urls: new BlobUrls(URL),
 });
 const router = new CommandRouter<OffscreenMessage>(

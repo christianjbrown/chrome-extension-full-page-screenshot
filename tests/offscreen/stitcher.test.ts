@@ -1,3 +1,4 @@
+import { DeviceGeometry } from "../../src/offscreen/device-geometry";
 import { CanvasLimitCutter } from "../../src/offscreen/part-layout";
 import { Stitcher } from "../../src/offscreen/stitcher";
 import { FakeSurface, fakeBitmap } from "./fakes";
@@ -24,6 +25,7 @@ function setUp(parts?: { top: number; height: number }[]) {
         return surface;
       }),
     },
+    geometry: new DeviceGeometry(),
     urls: {
       create: (blob: Blob) => {
         urls.push(blob);
@@ -137,6 +139,7 @@ describe("Stitcher", () => {
           throw new Error("too big");
         },
       },
+      geometry: new DeviceGeometry(),
       urls: { create: () => "blob:x" },
     });
     await stitcher.begin(1, 1);

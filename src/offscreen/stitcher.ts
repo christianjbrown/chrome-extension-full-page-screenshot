@@ -1,9 +1,10 @@
+import type { Geometry } from "./device-geometry";
 import type { ObjectUrls } from "./blob-urls";
 import type { ImageDecoder } from "./image-decoder";
 import type { Part, PartCutter } from "./part-layout";
 import type { Rect } from "../shared/messages";
 import { isFiniteNumber, isPositiveNumber } from "../shared/numbers";
-import type { Bitmap, Box, Surface, SurfaceFactory } from "./surfaces";
+import type { Bitmap, Surface, SurfaceFactory } from "./surfaces";
 
 // What the service worker asks of the offscreen document.
 interface StitchCommands {
@@ -19,6 +20,7 @@ export interface StitcherDependencies {
   decoder: ImageDecoder;
   cutter: PartCutter;
   surfaces: SurfaceFactory;
+  geometry: Geometry;
   urls: ObjectUrls;
 }
 
@@ -80,15 +82,14 @@ export class Stitcher implements StitchCommands {
     return urls;
   }
 
-  // The capture's own width fixes the scale, which takes in the screen's pixel
-  // ratio and the page zoom together.
   private pictureFor(image: Bitmap): Picture {
     if (this.picture === undefined) {
       if (!isPositiveNumber(image.width)) {
         throw new Error("The capture has no width");
       }
-      const scale = image.width / this.size.width;
-      const height = Math.round(this.size.height * scale);
+      const { geometry } = this.deps;
+      const scale = geometry.scaleFor(image.width, this.size.width);
+      const height = geometry.heightOf(this.size.height, scale);
       this.picture = {
         width: image.width,
         height,
@@ -105,7 +106,12 @@ export class Stitcher implements StitchCommands {
     rect: Rect,
     scroll: number,
   ): Promise<void> {
-    const { source, top } = this.toDevice(picture, rect, scroll);
+    const { source, top } = this.deps.geometry.place(
+      rect,
+      scroll,
+      picture.scale,
+      picture.height,
+    );
     for (const sheet of picture.sheets) {
       if (sheet.top + sheet.height <= top) {
         await this.writeOut(sheet);
@@ -117,27 +123,6 @@ export class Stitcher implements StitchCommands {
         sheet.surface.draw(image, source, top - sheet.top);
       }
     }
-  }
-
-  // Where the box sits in the capture and in the picture, in device pixels,
-  // cut off at the bottom of the picture.
-  private toDevice(
-    picture: Picture,
-    rect: Rect,
-    scroll: number,
-  ): { source: Box; top: number } {
-    const scaled = (value: number) => Math.round(value * picture.scale);
-    const top = scaled(rect.y + scroll);
-    const height = Math.min(picture.height, top + scaled(rect.height)) - top;
-    return {
-      source: {
-        x: scaled(rect.x),
-        y: scaled(rect.y),
-        width: scaled(rect.width),
-        height,
-      },
-      top,
-    };
   }
 
   private async writeOut(sheet: Sheet): Promise<void> {
