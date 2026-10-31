@@ -1,5 +1,8 @@
 import type { Mock } from "vitest";
-import type { StitchDriver } from "../../src/background/offscreen-stitcher";
+import type {
+  StitchLifecycle,
+  StitchSession,
+} from "../../src/background/offscreen-stitcher";
 import type { PageDriver } from "../../src/background/page-client";
 import type { ScreenshotIndicator } from "../../src/background/screenshot-indicator";
 
@@ -18,7 +21,7 @@ export function fakeIndicator(): Mocked<ScreenshotIndicator> {
   };
 }
 
-export function fakeStitcher(): Mocked<StitchDriver> {
+export function fakeStitcher(): Mocked<StitchSession & StitchLifecycle> {
   return {
     begin: vi.fn(() => Promise.resolve()),
     add: vi.fn(() => Promise.resolve()),

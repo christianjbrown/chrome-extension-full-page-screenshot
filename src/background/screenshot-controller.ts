@@ -2,14 +2,14 @@ import type { BrowserTab, CaptureTargets } from "./capturable-tabs";
 import type { ErrorExplainer } from "./chrome-errors";
 import type { FileSaver } from "./file-saver";
 import type { Shooter } from "./full-page-shooter";
-import type { StitchDriver } from "./offscreen-stitcher";
+import type { StitchLifecycle } from "./offscreen-stitcher";
 import type { ScreenshotIndicator } from "./screenshot-indicator";
 import type { ScreenshotNamer } from "./screenshot-namer";
 
 export interface ScreenshotControllerDependencies {
   targets: CaptureTargets;
   shooter: Shooter;
-  stitcher: StitchDriver;
+  stitcher: StitchLifecycle;
   namer: ScreenshotNamer;
   saver: FileSaver;
   indicator: ScreenshotIndicator;
