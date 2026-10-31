@@ -9,6 +9,7 @@ import { LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
 import { DomElements, type PageElement } from "./page-elements";
 import { ScrollerFinder } from "./scroller-finder";
+import { DomScrollerFactory } from "./scrollers";
 import { FrameSettler } from "./settler";
 import { StyleLedger } from "./style-ledger";
 
@@ -39,7 +40,12 @@ const elements = new DomElements(document, (element) =>
 );
 const ledger = new StyleLedger();
 const controller = new PageController({
-  scrollers: new ScrollerFinder(window, root, elements),
+  scrollers: new ScrollerFinder(
+    window,
+    root,
+    elements,
+    new DomScrollerFactory(window, root),
+  ),
   ledger,
   freezer: new LayoutFreezer(elements, ledger),
   settler: new FrameSettler(

@@ -1,10 +1,5 @@
 import type { PageElement, PageElements } from "./page-elements";
-import {
-  ElementScroller,
-  WindowScroller,
-  type Scroller,
-  type WindowLike,
-} from "./scrollers";
+import type { Scroller, ScrollerFactory, WindowLike } from "./scrollers";
 
 const SCROLLING = ["auto", "scroll", "overlay"];
 
@@ -15,16 +10,17 @@ export class ScrollerFinder {
     private readonly window: WindowLike,
     private readonly root: PageElement,
     private readonly elements: PageElements,
+    private readonly scrollers: ScrollerFactory,
   ) {}
 
   find(): Scroller {
     if (this.root.scrollHeight > this.window.innerHeight) {
-      return new WindowScroller(this.window, this.root);
+      return this.scrollers.forWindow();
     }
     const inner = this.biggestScrollingElement();
     return inner === undefined
-      ? new WindowScroller(this.window, this.root)
-      : new ElementScroller(inner, this.window);
+      ? this.scrollers.forWindow()
+      : this.scrollers.forElement(inner);
   }
 
   private biggestScrollingElement(): PageElement | undefined {

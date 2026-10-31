@@ -1,10 +1,20 @@
 import { ScrollerFinder } from "../../src/page/scroller-finder";
-import { ElementScroller, WindowScroller } from "../../src/page/scrollers";
+import {
+  DomScrollerFactory,
+  ElementScroller,
+  WindowScroller,
+} from "../../src/page/scrollers";
 import { FakeElements, fakeElement, fakeWindow } from "./fakes";
 
 function find(rootHeight: number, elements: FakeElements) {
   const root = fakeElement({ scrollHeight: rootHeight });
-  return new ScrollerFinder(fakeWindow(800), root, elements).find();
+  const window = fakeWindow(800);
+  return new ScrollerFinder(
+    window,
+    root,
+    elements,
+    new DomScrollerFactory(window, root),
+  ).find();
 }
 
 describe("ScrollerFinder", () => {
@@ -54,5 +64,31 @@ describe("ScrollerFinder", () => {
     expect(find(800, new FakeElements([hidden, short]))).toBeInstanceOf(
       WindowScroller,
     );
+  });
+});
+
+describe("ScrollerFinder with a factory of its own", () => {
+  it("asks the factory for what it picked", () => {
+    const window = fakeWindow(800);
+    const root = fakeElement({ scrollHeight: 800 });
+    const inner = fakeElement({ scrollHeight: 900, overflowY: "auto" });
+    const forWindow = { styled: root } as never;
+    const forElement = { styled: inner } as never;
+    const factory = {
+      forWindow: () => forWindow,
+      forElement: () => forElement,
+    };
+
+    expect(
+      new ScrollerFinder(
+        window,
+        root,
+        new FakeElements([inner]),
+        factory,
+      ).find(),
+    ).toBe(forElement);
+    expect(
+      new ScrollerFinder(window, root, new FakeElements([]), factory).find(),
+    ).toBe(forWindow);
   });
 });
