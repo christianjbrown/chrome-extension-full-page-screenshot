@@ -8,6 +8,7 @@ import { DownloadSaver } from "./download-saver";
 import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenStitcher } from "./offscreen-stitcher";
 import { PageClient } from "./page-client";
+import { FinitePageValidator } from "./page-validator";
 import { TimestampedNamer } from "./screenshot-namer";
 import { ScreenshotController } from "./screenshot-controller";
 import { SystemClock } from "./system-clock";
@@ -25,7 +26,12 @@ const stitcher = new OffscreenStitcher(
 const controller = new ScreenshotController({
   targets: new CapturableTabs(chrome.extension),
   shooter: new FullPageShooter({
-    page: new PageClient(chrome.scripting, chrome.tabs, "page.js"),
+    page: new PageClient(
+      chrome.scripting,
+      chrome.tabs,
+      "page.js",
+      new FinitePageValidator(),
+    ),
     planner: new SlicePlanner(),
     capture: new ThrottledCapture(
       chrome.tabs,

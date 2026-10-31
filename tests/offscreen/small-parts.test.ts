@@ -59,4 +59,16 @@ describe("CanvasLimitCutter", () => {
       { top: tallest, height: 1 },
     ]);
   });
+
+  it.each([
+    [0, 100],
+    [-5, 100],
+    [Number.NaN, 100],
+    [Infinity, 100],
+    [100, Number.NaN],
+    [100, -1],
+    [100, Infinity],
+  ])("refuses a %d by %d image", (width, height) => {
+    expect(() => cutter.partsFor(width, height)).toThrow("unusable size");
+  });
 });

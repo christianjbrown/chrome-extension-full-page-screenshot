@@ -2,6 +2,7 @@ import type { ObjectUrls } from "./blob-urls";
 import type { ImageDecoder } from "./image-decoder";
 import type { Part, PartCutter } from "./part-layout";
 import type { Rect } from "../shared/messages";
+import { isFiniteNumber, isPositiveNumber } from "../shared/numbers";
 import type { Bitmap, Box, Surface, SurfaceFactory } from "./surfaces";
 
 // What the service worker asks of the offscreen document.
@@ -43,12 +44,18 @@ export class Stitcher implements StitchCommands {
   constructor(private readonly deps: StitcherDependencies) {}
 
   begin(width: number, height: number): Promise<void> {
+    if (!isPositiveNumber(width) || !isPositiveNumber(height)) {
+      return Promise.reject(new Error("The page has an unusable size"));
+    }
     this.size = { width, height };
     this.picture = undefined;
     return Promise.resolve();
   }
 
   async add(dataUrl: string, rects: Rect[], scroll: number): Promise<void> {
+    if (!isFiniteNumber(scroll)) {
+      throw new Error("The page has an unusable scroll position");
+    }
     const image = await this.deps.decoder.decode(dataUrl);
     try {
       const picture = this.pictureFor(image);
@@ -77,6 +84,9 @@ export class Stitcher implements StitchCommands {
   // ratio and the page zoom together.
   private pictureFor(image: Bitmap): Picture {
     if (this.picture === undefined) {
+      if (!isPositiveNumber(image.width)) {
+        throw new Error("The capture has no width");
+      }
       const scale = image.width / this.size.width;
       const height = Math.round(this.size.height * scale);
       this.picture = {

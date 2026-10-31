@@ -109,4 +109,23 @@ describe("SlicePlanner", () => {
     expect(capped.height).toBe(MAX_PAGE_HEIGHT);
     expect(capped.slices.at(-1)!.scroll).toBe(MAX_PAGE_HEIGHT - 1000);
   });
+
+  it("steps the whole viewport when the scroller is only a sliver", () => {
+    const result = plan({ frameTop: 50, frameHeight: 2, scrollHeight: 3000 });
+
+    expect(result.slices.length).toBeLessThan(10);
+    expect(result.slices[0]?.rects[0]).toMatchObject({ y: 0 });
+  });
+
+  it("refuses a page that would need thousands of slices", () => {
+    expect(() =>
+      plan({ viewportHeight: 1, frameHeight: 1, scrollHeight: 1e9 }),
+    ).toThrow("too long");
+  });
+
+  it("does not loop when the viewport has no height", () => {
+    expect(
+      plan({ viewportHeight: 0, frameHeight: 0.5, scrollHeight: 5000 }).slices,
+    ).toHaveLength(1);
+  });
 });
