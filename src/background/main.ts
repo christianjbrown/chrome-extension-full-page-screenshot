@@ -2,6 +2,7 @@
 import type { OffscreenMessage } from "../shared/messages";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { CapturableTabs } from "./capturable-tabs";
+import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
 import { ChromeErrorExplainer } from "./chrome-errors";
 import { DownloadSaver } from "./download-saver";
@@ -24,7 +25,11 @@ const stitcher = new OffscreenStitcher(
   "offscreen.html",
 );
 const controller = new ScreenshotController({
-  targets: new CapturableTabs(chrome.extension),
+  targets: new CapturableTabs([
+    new BrowserPageRule(),
+    new WebStoreRule(),
+    new LocalFileRule(chrome.extension),
+  ]),
   shooter: new FullPageShooter({
     page: new PageClient(
       chrome.scripting,

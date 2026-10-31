@@ -1,3 +1,5 @@
+import type { CaptureRule } from "./capture-rules";
+
 export interface BrowserTab {
   id?: number | undefined;
   windowId?: number | undefined;
@@ -15,43 +17,10 @@ export interface CaptureTargets {
   targetFor(tab: BrowserTab): Promise<CaptureTarget>;
 }
 
-export interface FileSchemeAccess {
-  isAllowedFileSchemeAccess(): Promise<boolean>;
-}
-
-interface Rule {
-  blocks(url: string): Promise<boolean>;
-  reason: string;
-}
-
-const BROWSER_PAGE =
-  /^(chrome|chrome-extension|chrome-search|chrome-untrusted|devtools|edge|about|view-source):/;
-const WEB_STORE =
-  /^https:\/\/(chromewebstore\.google\.com|chrome\.google\.com\/webstore)(\/|$)/;
-
 // Turns the clicked tab into something to capture, or says plainly why Chrome
 // will not allow it, before anything is injected.
 export class CapturableTabs implements CaptureTargets {
-  private readonly rules: Rule[];
-
-  constructor(files: FileSchemeAccess) {
-    this.rules = [
-      {
-        blocks: (url) => Promise.resolve(BROWSER_PAGE.test(url)),
-        reason: "Chrome does not let extensions capture its own pages",
-      },
-      {
-        blocks: (url) => Promise.resolve(WEB_STORE.test(url)),
-        reason: "Chrome does not let extensions capture the Web Store",
-      },
-      {
-        blocks: async (url) =>
-          url.startsWith("file:") && !(await files.isAllowedFileSchemeAccess()),
-        reason:
-          "Turn on Allow access to file URLs for this extension to capture local files",
-      },
-    ];
-  }
+  constructor(private readonly rules: CaptureRule[]) {}
 
   async targetFor(tab: BrowserTab): Promise<CaptureTarget> {
     if (tab.id === undefined || tab.windowId === undefined) {
