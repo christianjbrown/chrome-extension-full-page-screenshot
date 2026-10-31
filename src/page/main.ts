@@ -1,6 +1,6 @@
 // The script injected into the page: builds the object graph and listens for
-// the service worker. It is injected again on every click, so it first retires
-// the copy a previous click left behind.
+// the service worker. It is injected again on every click, which the
+// reinstaller keeps from piling up listeners.
 import { CommandRouter } from "../shared/command-router";
 import { pageGuards } from "../shared/message-guards";
 import type { PageMessage, Reply } from "../shared/messages";
@@ -8,6 +8,7 @@ import { VisibleImageWaiter } from "./image-waiter";
 import { LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
 import { DomElements, type PageElement } from "./page-elements";
+import { Reinstaller, type Installed } from "./reinstaller";
 import { ScrollerFinder } from "./scroller-finder";
 import { DomScrollerFactory } from "./scrollers";
 import { FrameSettler } from "./settler";
@@ -19,19 +20,27 @@ type Listener = (
   reply: (reply: Reply<unknown>) => void,
 ) => boolean;
 
-interface Installed {
-  listener: Listener;
-  controller: PageController;
-}
-
 const KEY = "__fullPageScreenshot";
-const globals = globalThis as unknown as Record<string, Installed | undefined>;
-
-const previous = globals[KEY];
-if (previous !== undefined) {
-  chrome.runtime.onMessage.removeListener(previous.listener);
-  void previous.controller.restore();
-}
+const globals = globalThis as unknown as Record<
+  string,
+  Installed<Listener> | undefined
+>;
+const reinstaller = new Reinstaller<Listener>(
+  {
+    get: () => globals[KEY],
+    set: (installed) => {
+      globals[KEY] = installed;
+    },
+  },
+  {
+    add: (listener) => {
+      chrome.runtime.onMessage.addListener(listener);
+    },
+    remove: (listener) => {
+      chrome.runtime.onMessage.removeListener(listener);
+    },
+  },
+);
 
 const root = document.documentElement as unknown as PageElement;
 // Browser functions are wrapped so they are never called with the wrong `this`.
@@ -75,5 +84,4 @@ const router = new CommandRouter<PageMessage>(
 const listener: Listener = (message, sender, reply) =>
   router.route(message, sender as { id?: string }, reply);
 
-chrome.runtime.onMessage.addListener(listener);
-globals[KEY] = { listener, controller };
+reinstaller.install({ listener, controller });
