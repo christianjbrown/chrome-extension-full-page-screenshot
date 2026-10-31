@@ -1,11 +1,15 @@
 import type { PageElements } from "./page-elements";
-import type { StyleLedger } from "./style-ledger";
+import type { StyleOverrides } from "./style-ledger";
+
+export interface Freezer {
+  freeze(hideFixed: boolean): void;
+}
 
 // Stops headers and footers from repeating down the stitched image.
-export class LayoutFreezer {
+export class LayoutFreezer implements Freezer {
   constructor(
     private readonly elements: PageElements,
-    private readonly ledger: StyleLedger,
+    private readonly ledger: StyleOverrides,
   ) {}
 
   // Sticky elements go back to where they sit in the page, and fixed ones,

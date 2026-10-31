@@ -1,9 +1,9 @@
 import type { PageLayout } from "../shared/messages";
 import type { ImageWaiter } from "./image-waiter";
-import type { LayoutFreezer } from "./layout-freezer";
+import type { Freezer } from "./layout-freezer";
 import type { Scroller } from "./scrollers";
 import type { Settler } from "./settler";
-import type { StyleLedger, Styled } from "./style-ledger";
+import type { StyleOverrides, StyleRestoration, Styled } from "./style-ledger";
 
 // What the service worker asks of the page while it captures.
 interface PageCommands {
@@ -18,8 +18,8 @@ interface ScrollerSource {
 
 export interface PageControllerDependencies {
   scrollers: ScrollerSource;
-  ledger: StyleLedger;
-  freezer: LayoutFreezer;
+  ledger: StyleOverrides & StyleRestoration;
+  freezer: Freezer;
   settler: Settler;
   images: ImageWaiter;
   root: Styled;
