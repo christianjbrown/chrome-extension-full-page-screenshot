@@ -2,6 +2,8 @@
 
 One button in your Chrome toolbar. Click it and a PNG of the whole page, top to bottom, lands in your downloads folder. No editor tab, no save dialog, no "would you like to crop that?". Click, done.
 
+![A long page in Chrome, next to the single tall PNG the extension saved of it](docs/screenshot.png)
+
 ## What you get 🖼️
 
 - **The entire page**, not just the bit on screen. It scrolls down, snaps each screenful, and stitches them into one tall image.
@@ -73,7 +75,7 @@ A page too tall for one image comes out as `...-part-1.png`, `...-part-2.png` an
 
 No analytics, no tracking, no ads, no accounts, and nothing phoning home. The screenshot is stitched together right there in Chrome and saved to your downloads folder, and never goes near a server.
 
-## Hacking on it 🛠️
+## Development 🛠️
 
 It's TypeScript, bundled with esbuild, tested with Vitest.
 
