@@ -75,7 +75,7 @@ A page too tall for one image comes out as `...-part-1.png`, `...-part-2.png` an
 
 No analytics, no tracking, no ads, no accounts, and nothing phoning home. The screenshot is stitched together right there in Chrome and saved to your downloads folder, and never goes near a server.
 
-## Hacking on it 🛠️
+## Development 🛠️
 
 It's TypeScript, bundled with esbuild, tested with Vitest.
 
