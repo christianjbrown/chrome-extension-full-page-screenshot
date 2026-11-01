@@ -14,3 +14,6 @@ npm-debug.log*
 .idea/
 .vscode/
 *.swp
+
+# Upload for the Chrome Web Store: npm run package
+extension.zip
