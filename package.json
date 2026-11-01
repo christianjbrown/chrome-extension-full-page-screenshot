@@ -2,6 +2,7 @@
   "name": "chrome-extension-full-page-screenshot",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "description": "Chrome extension: one click saves a full-page PNG screenshot of the current tab.",
   "type": "module",
   "scripts": {
