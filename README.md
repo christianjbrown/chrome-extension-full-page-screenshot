@@ -1,4 +1,4 @@
-# Full Page Screenshot 📸
+# Full Page Screenshot Chrome Extension 📸
 
 One button in your Chrome toolbar. Click it and a PNG of the whole page, top to bottom, lands in your downloads folder. No editor tab, no save dialog, no "would you like to crop that?". Click, done.
 
