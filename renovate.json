@@ -3,17 +3,10 @@
   "extends": ["config:recommended"],
   "description": [
     "Renovate keeps the npm dependencies and the GitHub Actions versions current. Every update arrives as a pull request and has to pass the Gates check before it merges.",
-    "Auto-merge: minor, patch and digest updates merge through GitHub native auto-merge once that check passes.",
-    "MAJOR updates stay manual, because they can need code changes."
+    "Auto-merge: every update, majors included, merges through GitHub native auto-merge once Gates passes. Gates is a required check on main, so nothing merges before CI is green.",
+    "An update that needs code changes fails Gates and stays open for a person to pick up."
   ],
   "dependencyDashboard": true,
   "automerge": true,
-  "platformAutomerge": true,
-  "packageRules": [
-    {
-      "description": "Keep major updates manual - they need review before merging.",
-      "matchUpdateTypes": ["major"],
-      "automerge": false
-    }
-  ]
+  "platformAutomerge": true
 }
