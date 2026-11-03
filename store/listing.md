@@ -2,6 +2,8 @@
 
 Everything the developer dashboard asks for, ready to paste. The images are in this folder.
 
+Live at https://chromewebstore.google.com/detail/lehpmnfheonpjfhganmhocmdpafolmfg
+
 ## Package
 
 Run `npm run package` and upload the `extension.zip` it makes. Bump `version` in `static/manifest.json` before uploading an update.

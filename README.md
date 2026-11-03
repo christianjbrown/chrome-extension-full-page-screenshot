@@ -17,6 +17,10 @@ One button in your Chrome toolbar. Click it and a PNG of the whole page, top to 
 
 ## Install it 🔧
 
+It's on the [Chrome Web Store](https://chromewebstore.google.com/detail/lehpmnfheonpjfhganmhocmdpafolmfg). Hit **Add to Chrome**, then click the puzzle piece 🧩 in the toolbar and pin **Christian's Full Page Screenshot**. Chrome keeps it up to date for you.
+
+### Or build it yourself 🛠️
+
 You need [Node.js](https://nodejs.org) 22 or newer, and Chrome 126 or newer.
 
 1. Grab the code and build it:
@@ -37,7 +41,7 @@ You need [Node.js](https://nodejs.org) 22 or newer, and Chrome 126 or newer.
 
 Done. The little blue page icon in your toolbar is your new best friend.
 
-### Updating 🔄
+#### Updating a build 🔄
 
 ```bash
 git pull
