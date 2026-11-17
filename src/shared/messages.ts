@@ -1,4 +1,5 @@
 // Everything the service worker, the page and the offscreen document say to each other.
+import type { ColourScheme } from "./colour-scheme";
 
 // Where the page scrolls, in CSS pixels. The frame is the part of the viewport
 // that scrolls: all of it for a normal page, or one inner element's box when
@@ -36,6 +37,12 @@ export type OffscreenMessage =
       scroll: number;
     }
   | { target: "offscreen"; type: "finish" };
+
+export interface BackgroundMessage {
+  target: "background";
+  type: "scheme";
+  scheme: ColourScheme;
+}
 
 export type Reply<T> = { ok: true; value: T } | { ok: false; error: string };
 

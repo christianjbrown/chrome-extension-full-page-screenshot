@@ -1,4 +1,9 @@
-import type { OffscreenMessage, PageMessage } from "./messages";
+import { COLOUR_SCHEMES } from "./colour-scheme";
+import type {
+  BackgroundMessage,
+  OffscreenMessage,
+  PageMessage,
+} from "./messages";
 import { isFiniteNumber } from "./numbers";
 
 type Fields = Record<string, unknown>;
@@ -43,4 +48,11 @@ export const offscreenGuards: MessageGuards<OffscreenMessage> = {
   finish: (
     _message,
   ): _message is Extract<OffscreenMessage, { type: "finish" }> => true,
+};
+
+export const backgroundGuards: MessageGuards<BackgroundMessage> = {
+  scheme: (
+    message,
+  ): message is Extract<BackgroundMessage, { type: "scheme" }> =>
+    (COLOUR_SCHEMES as readonly unknown[]).includes((message as Fields).scheme),
 };

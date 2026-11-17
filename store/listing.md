@@ -62,7 +62,7 @@ Injects the script that scrolls the page one screenful at a time, measures it, a
 **offscreen**
 
 ```text
-Stitches the captured screenfuls into one PNG in an offscreen document, which has the canvas and blob APIs a service worker lacks.
+Opens one hidden document that does two things a service worker cannot. It stitches the captured screenfuls into one PNG, which needs the canvas and blob APIs. And it reads whether Chrome is in its light or dark colour scheme, so the toolbar icon can be drawn to match. The document reads nothing else.
 ```
 
 **downloads**

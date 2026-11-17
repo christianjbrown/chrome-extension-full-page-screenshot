@@ -9,9 +9,15 @@ type Listener = (
 function installBrowser() {
   const listeners: Listener[] = [];
   const drawImage = vi.fn();
+  const sendMessage = vi.fn().mockResolvedValue(undefined);
+  const query = { matches: true };
+  const matchMedia = vi.fn().mockReturnValue(query);
+  const setInterval = vi.fn();
+  vi.stubGlobal("window", { matchMedia, setInterval });
   vi.stubGlobal("chrome", {
     runtime: {
       id: "ext",
+      sendMessage,
       onMessage: {
         addListener: (listener: Listener) => listeners.push(listener),
       },
@@ -45,7 +51,7 @@ function installBrowser() {
     },
   );
   vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:shot");
-  return { listeners, drawImage };
+  return { listeners, drawImage, sendMessage, query, matchMedia, setInterval };
 }
 
 function send(listeners: Listener[], message: unknown): Promise<unknown> {
@@ -79,6 +85,28 @@ describe("offscreen document", () => {
       send(listeners, { target: "offscreen", type: "finish" }),
     ).resolves.toEqual({ ok: true, value: ["blob:shot"] });
     expect(drawImage).toHaveBeenCalledTimes(1);
+  });
+
+  it("tells the service worker the colour scheme, and keeps looking", async () => {
+    vi.resetModules();
+    const { sendMessage, query, matchMedia, setInterval } = installBrowser();
+
+    await import("../../src/offscreen/main");
+
+    expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
+    expect(sendMessage).toHaveBeenCalledWith({
+      target: "background",
+      type: "scheme",
+      scheme: "dark",
+    });
+    const [look] = setInterval.mock.calls[0] as [() => void, number];
+    query.matches = false;
+    look();
+    expect(sendMessage).toHaveBeenLastCalledWith({
+      target: "background",
+      type: "scheme",
+      scheme: "light",
+    });
   });
 
   it("ignores slices with bad fields and foreign senders", async () => {
