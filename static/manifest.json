@@ -1,10 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Christian's Full Page Screenshot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "One click saves a screenshot of the whole page, top to bottom, as a PNG in your downloads folder.",
   "minimum_chrome_version": "126",
-  "permissions": ["activeTab", "scripting", "offscreen", "downloads"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "offscreen",
+    "downloads",
+    "storage"
+  ],
   "background": {
     "service_worker": "background.js"
   },

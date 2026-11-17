@@ -11,6 +11,7 @@ import { CapturableTabs } from "./capturable-tabs";
 import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
 import { ChromeErrorExplainer } from "./chrome-errors";
+import { ClickScheme } from "./click-scheme";
 import { DownloadSaver } from "./download-saver";
 import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
@@ -19,15 +20,27 @@ import { PageClient } from "./page-client";
 import { FinitePageValidator } from "./page-validator";
 import { ReopeningDocument } from "./reopening-document";
 import { TimestampedNamer } from "./screenshot-namer";
+import { SchemeStore } from "./scheme-store";
 import { ScreenshotController } from "./screenshot-controller";
 import { SystemClock } from "./system-clock";
+import { TabScheme } from "./tab-scheme";
 import { ToolbarIcon } from "./toolbar-icon";
 import { ToolbarIndicator } from "./toolbar-indicator";
+import { ToolbarScheme } from "./toolbar-scheme";
 import { ThrottledCapture, TimerSleeper } from "./visible-tab-capture";
 
 const clock = new SystemClock();
 const indicator = new ToolbarIndicator(chrome.action);
-const icon = new ToolbarIcon(chrome.action);
+// The device's scheme comes from the offscreen document and Chrome's own from a
+// clicked tab, so the icon is worked out from both.
+const toolbarScheme = new ToolbarScheme(
+  new SchemeStore(chrome.storage.local),
+  new ToolbarIcon(chrome.action),
+);
+const clickScheme = new ClickScheme(
+  new TabScheme(chrome.scripting),
+  toolbarScheme,
+);
 // One offscreen document does two jobs: it stitches, and it watches the colour
 // scheme. It is open for as long as Chrome runs so that a change of scheme
 // reaches a sleeping service worker.
@@ -44,7 +57,7 @@ const stitcher = new OffscreenStitcher(
 );
 const router = new CommandRouter<BackgroundMessage>(
   "background",
-  { scheme: (message) => icon.show(message.scheme) },
+  { scheme: (message) => toolbarScheme.deviceIs(message.scheme) },
   backgroundGuards,
   chrome.runtime.id,
 );
@@ -79,6 +92,9 @@ const controller = new ScreenshotController({
 
 chrome.action.onClicked.addListener((tab) => {
   void controller.take(tab);
+  // Beside the capture, never part of it: a failed read must not stop a
+  // screenshot, and the capture does not wait for it.
+  void clickScheme.clicked(tab).catch(() => undefined);
 });
 chrome.runtime.onMessage.addListener(
   (message: unknown, sender, sendResponse: (reply: Reply<unknown>) => void) =>
