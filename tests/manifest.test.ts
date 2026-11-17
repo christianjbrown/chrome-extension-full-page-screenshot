@@ -9,10 +9,12 @@ describe("manifest", () => {
     expect(manifest.permissions).toContain("activeTab");
   });
 
-  // One offscreen document stitches the screenshot and reads Chrome's colour
-  // scheme for the toolbar icon.
-  it("asks for offscreen", () => {
+  // One offscreen document stitches the screenshot and reads the device's
+  // colour scheme for the toolbar icon, and storage remembers the scheme Chrome
+  // itself is in, which only a clicked tab reveals.
+  it("asks for offscreen and storage", () => {
     expect(manifest.permissions).toContain("offscreen");
+    expect(manifest.permissions).toContain("storage");
   });
 
   it("starts with the icon for a dark toolbar until the scheme is known", () => {

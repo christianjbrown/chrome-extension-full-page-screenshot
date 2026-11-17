@@ -78,6 +78,12 @@ function fakeChrome() {
       isAllowedFileSchemeAccess: vi.fn().mockResolvedValue(false),
     },
     scripting: { executeScript: vi.fn().mockResolvedValue([]) },
+    storage: {
+      local: {
+        get: vi.fn().mockResolvedValue({}),
+        set: vi.fn().mockResolvedValue(undefined),
+      },
+    },
     tabs: {
       sendMessage: vi.fn((_tabId: number, message: { type: string }) =>
         pageReply(message),
@@ -217,14 +223,61 @@ describe("service worker", () => {
       reply,
     );
 
+    await vi.waitFor(() => {
+      expect(reply).toHaveBeenCalledWith({ ok: true, value: undefined });
+    });
     expect(chrome.action.setIcon).toHaveBeenCalledWith({
       path: expect.objectContaining({
         "16": "icons/on-light/icon-16.png",
       }) as unknown,
     });
-    await vi.waitFor(() => {
-      expect(reply).toHaveBeenCalledWith({ ok: true, value: undefined });
+  });
+
+  it("learns Chrome's own colour scheme from the tab that was clicked", async () => {
+    const chrome = await load();
+    chrome.scripting.executeScript.mockImplementation(
+      (injection: { files?: string[] }) =>
+        Promise.resolve(injection.files ? [] : [{ result: false }]),
+    );
+
+    chrome.action.onClicked.fire({
+      id: 4,
+      windowId: 2,
+      url: "https://example.com/",
     });
+
+    await vi.waitFor(() => {
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        toolbarScheme: { device: "dark", chrome: "light" },
+      });
+    });
+    expect(chrome.action.setIcon).toHaveBeenCalledWith({
+      path: expect.objectContaining({
+        "16": "icons/on-light/icon-16.png",
+      }) as unknown,
+    });
+  });
+
+  it("still takes the screenshot when the colour scheme cannot be saved", async () => {
+    const chrome = await load();
+    chrome.storage.local.get.mockRejectedValue(new Error("storage is down"));
+    chrome.scripting.executeScript.mockImplementation(
+      (injection: { files?: string[] }) =>
+        Promise.resolve(injection.files ? [] : [{ result: false }]),
+    );
+
+    chrome.action.onClicked.fire({
+      id: 4,
+      windowId: 2,
+      url: "https://example.com/",
+    });
+
+    await vi.waitFor(
+      () => {
+        expect(chrome.downloads.download).toHaveBeenCalled();
+      },
+      { timeout: 3000 },
+    );
   });
 
   it("ignores a colour scheme from anywhere but its own extension", async () => {
@@ -241,8 +294,11 @@ describe("service worker", () => {
 
   it("explains Chrome refusing to inject into a page whose URL it hid", async () => {
     const chrome = await load();
-    chrome.scripting.executeScript.mockRejectedValueOnce(
-      new Error("Cannot access a chrome:// URL"),
+    chrome.scripting.executeScript.mockImplementation(
+      (injection: { files?: string[] }) =>
+        injection.files
+          ? Promise.reject(new Error("Cannot access a chrome:// URL"))
+          : Promise.resolve([]),
     );
 
     chrome.action.onClicked.fire({ id: 4, windowId: 2 });
@@ -271,6 +327,8 @@ describe("service worker", () => {
       });
     });
     expect(chrome.action.setBadgeText).toHaveBeenCalledWith({ text: "!" });
-    expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
+    expect(chrome.scripting.executeScript).not.toHaveBeenCalledWith(
+      expect.objectContaining({ files: ["page.js"] }),
+    );
   });
 });
