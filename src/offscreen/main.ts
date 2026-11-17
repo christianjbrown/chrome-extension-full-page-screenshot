@@ -1,6 +1,8 @@
 // The offscreen document: builds the object graph and listens for the service
-// worker. It exists because a service worker cannot make a blob URL, and a full
-// page PNG is far too big to download as a data URL.
+// worker. It does two jobs a service worker cannot. It stitches, because a
+// service worker cannot make a blob URL and a full page PNG is far too big to
+// download as a data URL. And it watches Chrome's colour scheme, because a
+// service worker has no matchMedia.
 import { CommandRouter } from "../shared/command-router";
 import { offscreenGuards } from "../shared/message-guards";
 import type { OffscreenMessage, Reply } from "../shared/messages";
@@ -8,6 +10,7 @@ import { BlobUrls } from "./blob-urls";
 import { DataUrlDecoder } from "./image-decoder";
 import { DeviceGeometry } from "./device-geometry";
 import { CanvasLimitCutter } from "./part-layout";
+import { DARK_SCHEME_QUERY, SchemeReporter } from "./scheme-reporter";
 import { Stitcher } from "./stitcher";
 import { OffscreenCanvasSurfaces } from "./surfaces";
 
@@ -38,3 +41,11 @@ chrome.runtime.onMessage.addListener(
   (message: unknown, sender, sendResponse: (reply: Reply<unknown>) => void) =>
     router.route(message, sender, sendResponse),
 );
+
+new SchemeReporter(
+  window.matchMedia(DARK_SCHEME_QUERY),
+  chrome.runtime,
+  (work, everyMs) => {
+    window.setInterval(work, everyMs);
+  },
+).start();

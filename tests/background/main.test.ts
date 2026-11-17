@@ -72,6 +72,7 @@ function fakeChrome() {
       setBadgeText: vi.fn().mockResolvedValue(undefined),
       setBadgeBackgroundColor: vi.fn().mockResolvedValue(undefined),
       setTitle: vi.fn().mockResolvedValue(undefined),
+      setIcon: vi.fn().mockResolvedValue(undefined),
     },
     extension: {
       isAllowedFileSchemeAccess: vi.fn().mockResolvedValue(false),
@@ -94,6 +95,9 @@ function fakeChrome() {
       }),
     },
     runtime: {
+      id: "ext",
+      onMessage: fakeEvent(),
+      onStartup: fakeEvent(),
       getURL: (path: string) => `chrome-extension://id/${path}`,
       getContexts: vi.fn(() => Promise.resolve(open ? [{}] : [])),
       sendMessage: vi.fn((message: { type: string }) =>
@@ -145,7 +149,10 @@ describe("service worker", () => {
       format: "png",
     });
     expect(chrome.offscreen.createDocument).toHaveBeenCalledWith(
-      expect.objectContaining({ url: "offscreen.html", reasons: ["BLOBS"] }),
+      expect.objectContaining({
+        url: "offscreen.html",
+        reasons: ["BLOBS", "MATCH_MEDIA"],
+      }),
     );
     const filename: unknown = expect.stringMatching(
       /^\d{4}-\d\d-\d\d-\d\d-\d\d-demo-page\.png$/,
@@ -157,6 +164,79 @@ describe("service worker", () => {
       conflictAction: "uniquify",
     });
     expect(chrome.action.setBadgeText).toHaveBeenLastCalledWith({ text: "" });
+  });
+
+  it("opens the offscreen document as soon as it starts, and once only", async () => {
+    const chrome = await load();
+
+    chrome.runtime.onStartup.fire();
+
+    await vi.waitFor(() => {
+      expect(chrome.runtime.getContexts).toHaveBeenCalledTimes(2);
+    });
+    expect(chrome.offscreen.createDocument).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses the document that is already open for a capture, and opens a new one once the files are saved", async () => {
+    const chrome = await load();
+    await vi.waitFor(() => {
+      expect(chrome.offscreen.createDocument).toHaveBeenCalledTimes(1);
+    });
+
+    chrome.action.onClicked.fire({
+      id: 4,
+      windowId: 2,
+      title: "Demo Page",
+      url: "https://example.com/",
+    });
+
+    await vi.waitFor(
+      () => {
+        expect(chrome.offscreen.createDocument).toHaveBeenCalledTimes(2);
+      },
+      { timeout: 3000 },
+    );
+    expect(chrome.offscreen.closeDocument).toHaveBeenCalledTimes(1);
+    expect(
+      chrome.offscreen.closeDocument.mock.invocationCallOrder[0],
+    ).toBeGreaterThan(chrome.downloads.download.mock.invocationCallOrder[0]!);
+    expect(
+      chrome.offscreen.createDocument.mock.invocationCallOrder[1],
+    ).toBeGreaterThan(
+      chrome.offscreen.closeDocument.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it("shows the icon for the colour scheme the offscreen document reports", async () => {
+    const chrome = await load();
+    const reply = vi.fn();
+
+    chrome.runtime.onMessage.fire(
+      { target: "background", type: "scheme", scheme: "light" },
+      { id: "ext" },
+      reply,
+    );
+
+    expect(chrome.action.setIcon).toHaveBeenCalledWith({
+      path: expect.objectContaining({
+        "16": "icons/on-light/icon-16.png",
+      }) as unknown,
+    });
+    await vi.waitFor(() => {
+      expect(reply).toHaveBeenCalledWith({ ok: true, value: undefined });
+    });
+  });
+
+  it("ignores a colour scheme from anywhere but its own extension", async () => {
+    const chrome = await load();
+
+    chrome.runtime.onMessage.fire(
+      { target: "background", type: "scheme", scheme: "light" },
+      { id: "evil" },
+      vi.fn(),
+    );
+
+    expect(chrome.action.setIcon).not.toHaveBeenCalled();
   });
 
   it("explains Chrome refusing to inject into a page whose URL it hid", async () => {

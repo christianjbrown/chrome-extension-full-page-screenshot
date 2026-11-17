@@ -72,6 +72,7 @@ A page too tall for one image comes out as `...-part-1.png`, `...-part-2.png` an
 - **Local files** (`file://`) need **Allow access to file URLs** turned on in the extension's details in `chrome://extensions`.
 - **Endless feeds get what's loaded when you click.** It captures down to where the page ends at that moment, and doesn't chase new posts as they load in. Want more of the feed? Scroll down until you've got what you want, then click. 📜
 - **It stops at 60,000 pixels tall** (CSS pixels), so an endless feed doesn't keep you waiting forever.
+- **The button dresses for the occasion.** Almost black on a light toolbar, almost white on a dark one, and it swaps within a second of Chrome doing so. 🌗
 - **Getting a save dialog every time?** That's Chrome's **Ask where to save each file before downloading** setting. Turn it off in `chrome://settings/downloads` and files go straight to your downloads folder.
 - **A red `!` on the button** means something went wrong. Hover over it and the tooltip says what.
 
@@ -94,7 +95,7 @@ How it fits together:
 
 - **`src/background`** is the service worker. It owns the button, works out how many screenfuls the page needs, scrolls through them, captures each one with `captureVisibleTab` (spaced out to stay under Chrome's limit), and saves the finished files. `main.ts` just wires the pieces to Chrome.
 - **`src/page`** is injected into the tab on each click. It finds what actually scrolls (the window, or an inner panel), turns off smooth scrolling, tames sticky and fixed elements, scrolls where it's told, and puts everything back afterwards.
-- **`src/offscreen`** is a hidden page that stitches the slices onto canvases and turns them into PNGs. It exists because a service worker can't make the blob URL a big download needs.
+- **`src/offscreen`** is a hidden page with two jobs a service worker can't do. It stitches the slices onto canvases and turns them into PNGs (a service worker can't make the blob URL a big download needs), and it keeps an eye on whether Chrome is light or dark so the button can match. Chrome allows one such page, so it's open the whole time Chrome is, and after each screenshot it's closed and opened again so the finished image's memory is let go.
 - **`src/shared`** holds the messages the three send each other. They never import each other's code, and lint enforces that.
 
 Every class gets its collaborators through its constructor, behind an interface, so each one is tested on its own with fakes.
