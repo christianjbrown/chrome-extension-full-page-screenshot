@@ -1,3 +1,4 @@
+import { CONFLICT_ACTION, type FilenameClaims } from "./filename-claims";
 import type { FileSaver } from "./file-saver";
 
 interface DownloadDelta {
@@ -13,7 +14,7 @@ export interface DownloadsApi {
     url: string;
     filename: string;
     saveAs: false;
-    conflictAction: "uniquify";
+    conflictAction: typeof CONFLICT_ACTION;
   }): Promise<number>;
   onChanged: {
     addListener(listener: DeltaListener): void;
@@ -21,18 +22,27 @@ export interface DownloadsApi {
   };
 }
 
-// Saves to Chrome's default downloads folder without asking where.
+// Saves to Chrome's default downloads folder without asking where, and claims
+// the name so that another extension cannot lose it.
 export class DownloadSaver implements FileSaver {
-  constructor(private readonly downloads: DownloadsApi) {}
+  constructor(
+    private readonly downloads: DownloadsApi,
+    private readonly claims: FilenameClaims,
+  ) {}
 
   async save(url: string, filename: string): Promise<void> {
-    const id = await this.downloads.download({
-      url,
-      filename,
-      saveAs: false,
-      conflictAction: "uniquify",
-    });
-    await this.finished(id);
+    this.claims.claim(url, filename);
+    try {
+      const id = await this.downloads.download({
+        url,
+        filename,
+        saveAs: false,
+        conflictAction: CONFLICT_ACTION,
+      });
+      await this.finished(id);
+    } finally {
+      this.claims.release(url);
+    }
   }
 
   // The file streams out of a blob URL that the offscreen document owns, so that

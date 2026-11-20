@@ -59,8 +59,18 @@ function fakeChrome() {
   const downloads = {
     download: vi.fn().mockResolvedValue(3),
     onChanged: fakeEvent(),
+    onDeterminingFilename: fakeEvent(),
+    suggested: [] as unknown[],
   };
-  downloads.download.mockImplementation(() => {
+  // Chrome asks every listener for a name, as it does when another extension
+  // also watches downloads.
+  downloads.download.mockImplementation((options: { url: string }) => {
+    downloads.onDeterminingFilename.fire(
+      { url: options.url },
+      (suggestion?: unknown) => {
+        downloads.suggested.push(suggestion);
+      },
+    );
     setTimeout(() => {
       downloads.onChanged.fire({ id: 3, state: { current: "complete" } });
     });
@@ -169,7 +179,22 @@ describe("service worker", () => {
       saveAs: false,
       conflictAction: "uniquify",
     });
+    expect(chrome.downloads.suggested).toEqual([
+      { filename, conflictAction: "uniquify" },
+    ]);
     expect(chrome.action.setBadgeText).toHaveBeenLastCalledWith({ text: "" });
+  });
+
+  it("leaves the name of a download it did not start to Chrome", async () => {
+    const chrome = await load();
+    const suggest = vi.fn();
+
+    chrome.downloads.onDeterminingFilename.fire(
+      { url: "https://example.com/file.zip" },
+      suggest,
+    );
+
+    expect(suggest).toHaveBeenCalledWith();
   });
 
   it("opens the offscreen document as soon as it starts, and once only", async () => {
