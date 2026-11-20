@@ -13,6 +13,7 @@ import { SlicePlanner } from "./capture-plan";
 import { ChromeErrorExplainer } from "./chrome-errors";
 import { ClickScheme } from "./click-scheme";
 import { DownloadSaver } from "./download-saver";
+import { ClaimedFilenames } from "./filename-claims";
 import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
@@ -30,6 +31,7 @@ import { ToolbarScheme } from "./toolbar-scheme";
 import { ThrottledCapture, TimerSleeper } from "./visible-tab-capture";
 
 const clock = new SystemClock();
+const filenames = new ClaimedFilenames();
 const indicator = new ToolbarIndicator(chrome.action);
 // The device's scheme comes from the offscreen document and Chrome's own from a
 // clicked tab, so the icon is worked out from both.
@@ -85,7 +87,7 @@ const controller = new ScreenshotController({
   }),
   stitcher,
   namer: new TimestampedNamer(clock),
-  saver: new DownloadSaver(chrome.downloads),
+  saver: new DownloadSaver(chrome.downloads, filenames),
   indicator,
   errors: new ChromeErrorExplainer(),
 });
@@ -95,6 +97,10 @@ chrome.action.onClicked.addListener((tab) => {
   // Beside the capture, never part of it: a failed read must not stop a
   // screenshot, and the capture does not wait for it.
   void clickScheme.clicked(tab).catch(() => undefined);
+});
+// Registered at the top so that Chrome finds it when the service worker wakes.
+chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
+  filenames.determine(item, suggest);
 });
 chrome.runtime.onMessage.addListener(
   (message: unknown, sender, sendResponse: (reply: Reply<unknown>) => void) =>

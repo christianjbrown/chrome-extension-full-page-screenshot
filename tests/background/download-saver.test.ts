@@ -20,7 +20,14 @@ function setUp() {
       listener(delta);
     });
   };
-  return { downloads, listeners, emit, saver: new DownloadSaver(downloads) };
+  const claims = { claim: vi.fn(), release: vi.fn() };
+  return {
+    downloads,
+    listeners,
+    emit,
+    claims,
+    saver: new DownloadSaver(downloads, claims),
+  };
 }
 
 async function started(downloads: ReturnType<typeof setUp>["downloads"]) {
@@ -81,6 +88,32 @@ describe("DownloadSaver", () => {
 
     await expect(saving).rejects.toThrow("FILE_NO_SPACE");
     expect(listeners.size).toBe(0);
+  });
+
+  it("claims the name before the download starts and releases it once saved", async () => {
+    const { downloads, emit, claims, saver } = setUp();
+
+    const saving = saver.save("blob:x", "name.png");
+    await started(downloads);
+    expect(claims.claim).toHaveBeenCalledWith("blob:x", "name.png");
+    expect(claims.claim.mock.invocationCallOrder[0]).toBeLessThan(
+      downloads.download.mock.invocationCallOrder[0]!,
+    );
+    expect(claims.release).not.toHaveBeenCalled();
+    emit({ id: 5, state: { current: "complete" } });
+    await saving;
+
+    expect(claims.release).toHaveBeenCalledWith("blob:x");
+  });
+
+  it("releases the name when the download cannot start", async () => {
+    const { downloads, claims, saver } = setUp();
+    downloads.download.mockRejectedValue(new Error("Invalid filename"));
+
+    await expect(saver.save("blob:x", "name.png")).rejects.toThrow(
+      "Invalid filename",
+    );
+    expect(claims.release).toHaveBeenCalledWith("blob:x");
   });
 
   it("fails with a general reason when Chrome gives none", async () => {
