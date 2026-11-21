@@ -1,3 +1,5 @@
+import { IMPORTANT } from "./css";
+
 export interface InlineStyle {
   getPropertyValue(property: string): string;
   getPropertyPriority(property: string): string;
@@ -42,7 +44,7 @@ export class StyleLedger implements StyleOverrides, StyleRestoration {
         priority: target.style.getPropertyPriority(property),
       });
     }
-    target.style.setProperty(property, value, "important");
+    target.style.setProperty(property, value, IMPORTANT);
   }
 
   restore(): void {

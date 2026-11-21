@@ -1,7 +1,17 @@
 import { CommandRouter } from "../../src/shared/command-router";
-import { replyWhenDone, unwrap } from "../../src/shared/replies";
+import { OwnContextFilter } from "../../src/shared/message-filter";
+import { ReplyUnwrapper, SettledResponder } from "../../src/shared/replies";
 
-describe("replyWhenDone", () => {
+const replyWhenDone = <T>(
+  work: Promise<T>,
+  reply: (reply: unknown) => void,
+) => {
+  new SettledResponder().answer(work, reply);
+};
+const unwrap = (reply: unknown, who: string) =>
+  new ReplyUnwrapper().read(reply, who);
+
+describe("SettledResponder", () => {
   it("answers with the value once the work succeeds", async () => {
     const reply = vi.fn();
 
@@ -23,7 +33,7 @@ describe("replyWhenDone", () => {
   });
 });
 
-describe("unwrap", () => {
+describe("ReplyUnwrapper", () => {
   it("returns the value of a good reply", () => {
     expect(unwrap({ ok: true, value: "x" }, "The page")).toBe("x");
   });
@@ -49,7 +59,6 @@ const ME = { id: "me" };
 
 function router() {
   return new CommandRouter<TestMessage>(
-    "here",
     {
       double: (message) => Promise.resolve(message.n * 2),
       fail: () => Promise.reject(new Error("failed")),
@@ -59,7 +68,8 @@ function router() {
         typeof (message as { n?: unknown }).n === "number",
       fail: (_message): _message is TestMessage & { type: "fail" } => true,
     },
-    "me",
+    new OwnContextFilter("me", "here"),
+    new SettledResponder(),
   );
 }
 

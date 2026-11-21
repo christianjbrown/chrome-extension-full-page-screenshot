@@ -1,3 +1,4 @@
+import { TITLES } from "../src/background/toolbar-indicator";
 import manifest from "../static/manifest.json";
 
 describe("manifest", () => {
@@ -22,6 +23,10 @@ describe("manifest", () => {
       "icons/on-dark/icon-16.png",
     );
     expect(manifest.icons["128"]).toBe("icons/on-dark/icon-128.png");
+  });
+
+  it("starts with the title the button goes back to when idle", () => {
+    expect(manifest.action.default_title).toBe(TITLES.idle);
   });
 
   it("has no keyboard shortcut", () => {

@@ -2,10 +2,13 @@
 // the service worker. It is injected again on every click, which the
 // reinstaller keeps from piling up listeners.
 import { CommandRouter } from "../shared/command-router";
+import { OwnContextFilter } from "../shared/message-filter";
 import { pageGuards } from "../shared/message-guards";
-import type { PageMessage, Reply } from "../shared/messages";
+import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
+import { SettledResponder } from "../shared/replies";
+import { PAGE_CONFIG } from "./config";
 import { VisibleImageWaiter } from "./image-waiter";
-import { LayoutFreezer } from "./layout-freezer";
+import { FREEZE_RULES, LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
 import { DomElements, type PageElement } from "./page-elements";
 import { Reinstaller, type Installed } from "./reinstaller";
@@ -56,30 +59,30 @@ const controller = new PageController({
     new DomScrollerFactory(window, root),
   ),
   ledger,
-  freezer: new LayoutFreezer(elements, ledger),
+  freezer: new LayoutFreezer(elements, ledger, FREEZE_RULES),
   settler: new FrameSettler(
     (callback) => requestAnimationFrame(callback),
     (callback, ms) => setTimeout(callback, ms),
-    100,
+    PAGE_CONFIG.settleMs,
   ),
   images: new VisibleImageWaiter(
     document,
     window,
     (callback, ms) => setTimeout(callback, ms),
-    2000,
+    PAGE_CONFIG.imagePatienceMs,
   ),
   root,
   viewport: window,
 });
 const router = new CommandRouter<PageMessage>(
-  "page",
   {
     prepare: () => controller.prepare(),
     scroll: (message) => controller.scrollTo(message.y, message.hideFixed),
     restore: () => controller.restore(),
   },
   pageGuards,
-  chrome.runtime.id,
+  new OwnContextFilter(chrome.runtime.id, TARGETS.page),
+  new SettledResponder(),
 );
 const listener: Listener = (message, sender, reply) =>
   router.route(message, sender as { id?: string }, reply);

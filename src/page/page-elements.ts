@@ -1,3 +1,4 @@
+import { EVERY_ELEMENT } from "./css";
 import type { Styled } from "./style-ledger";
 
 export interface ComputedLook {
@@ -34,7 +35,9 @@ export class DomElements implements PageElements {
   ) {}
 
   all(): PageElement[] {
-    return Array.from(this.document.querySelectorAll("*")) as PageElement[];
+    return Array.from(
+      this.document.querySelectorAll(EVERY_ELEMENT),
+    ) as PageElement[];
   }
 
   lookOf(element: PageElement): ComputedLook {

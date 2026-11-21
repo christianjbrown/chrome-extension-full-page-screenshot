@@ -1,3 +1,4 @@
+import { DownloadCompletion } from "../../src/background/download-completion";
 import { DownloadSaver } from "../../src/background/download-saver";
 
 type Listener = (delta: {
@@ -26,7 +27,11 @@ function setUp() {
     listeners,
     emit,
     claims,
-    saver: new DownloadSaver(downloads, claims),
+    saver: new DownloadSaver(
+      downloads,
+      claims,
+      new DownloadCompletion(downloads.onChanged),
+    ),
   };
 }
 

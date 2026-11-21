@@ -1,3 +1,5 @@
+import type { Timer } from "../shared/timer";
+
 // Waits for the page to repaint after a scroll, and for scroll handlers and
 // lazy images to catch up, before the slice is captured.
 export interface Settler {
@@ -5,7 +7,6 @@ export interface Settler {
 }
 
 export type FrameScheduler = (callback: () => void) => unknown;
-export type Timer = (callback: () => void, ms: number) => unknown;
 
 export class FrameSettler implements Settler {
   constructor(

@@ -1,7 +1,16 @@
+import {
+  KebabSlugger,
+  LocalTimeStamper,
+} from "../../src/background/file-name-parts";
 import { TimestampedNamer } from "../../src/background/screenshot-namer";
 import { SystemClock } from "../../src/background/system-clock";
 
-const at = (date: Date) => new TimestampedNamer({ now: () => date });
+const at = (date: Date) =>
+  new TimestampedNamer({
+    clock: { now: () => date },
+    slugger: new KebabSlugger(80),
+    stamper: new LocalTimeStamper(),
+  });
 const afternoon = new Date(2026, 9, 30, 14, 5, 12);
 const one = (title: string | undefined, date = afternoon) =>
   at(date).name(title, ["blob:1"])[0]!.filename;
@@ -42,6 +51,16 @@ describe("TimestampedNamer", () => {
     expect(one(`${"a".repeat(79)} bc`)).toBe(
       `2026-10-30-14-05-${"a".repeat(79)}.png`,
     );
+  });
+
+  it("joins the stamp and the slug it is given", () => {
+    const namer = new TimestampedNamer({
+      clock: { now: () => afternoon },
+      slugger: { slug: (title) => `slug-of-${title}` },
+      stamper: { stamp: () => "then" },
+    });
+
+    expect(namer.name("x", ["blob:1"])[0]!.filename).toBe("then-slug-of-x.png");
   });
 
   it("numbers the parts of a page cut into several", () => {

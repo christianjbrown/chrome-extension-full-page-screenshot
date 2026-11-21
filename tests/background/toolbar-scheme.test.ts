@@ -1,4 +1,7 @@
-import type { SchemeState } from "../../src/background/scheme-state";
+import {
+  SCHEME_POLICY,
+  type SchemeState,
+} from "../../src/background/scheme-state";
 import { ToolbarScheme } from "../../src/background/toolbar-scheme";
 
 function fakes(start: SchemeState = { device: "dark", chrome: null }) {
@@ -11,7 +14,11 @@ function fakes(start: SchemeState = { device: "dark", chrome: null }) {
     }),
   };
   const icon = { show: vi.fn().mockResolvedValue(undefined) };
-  return { memory, icon, scheme: new ToolbarScheme(memory, icon) };
+  return {
+    memory,
+    icon,
+    scheme: new ToolbarScheme(memory, icon, SCHEME_POLICY),
+  };
 }
 
 describe("ToolbarScheme", () => {

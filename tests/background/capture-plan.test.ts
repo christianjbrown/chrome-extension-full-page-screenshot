@@ -1,7 +1,11 @@
-import {
-  MAX_PAGE_HEIGHT,
-  SlicePlanner,
-} from "../../src/background/capture-plan";
+import { SlicePlanner } from "../../src/background/capture-plan";
+
+const MAX_PAGE_HEIGHT = 60000;
+const LIMITS = {
+  maxPageHeight: MAX_PAGE_HEIGHT,
+  minFrameHeight: 100,
+  maxSlices: 1000,
+};
 
 const plan = (layout: {
   viewportHeight?: number;
@@ -11,7 +15,7 @@ const plan = (layout: {
   frameWidth?: number;
   scrollHeight: number;
 }) =>
-  new SlicePlanner().plan({
+  new SlicePlanner(LIMITS).plan({
     viewportWidth: 1200,
     viewportHeight: layout.viewportHeight ?? 1000,
     frameTop: layout.frameTop ?? 0,

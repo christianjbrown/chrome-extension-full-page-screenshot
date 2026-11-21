@@ -22,25 +22,60 @@ export interface Rect {
   height: number;
 }
 
+// Which context a message is for.
+export const TARGETS = {
+  background: "background",
+  offscreen: "offscreen",
+  page: "page",
+} as const;
+
+// What each context can be asked to do.
+export const PAGE_TYPES = {
+  prepare: "prepare",
+  scroll: "scroll",
+  restore: "restore",
+} as const;
+
+export const OFFSCREEN_TYPES = {
+  begin: "begin",
+  slice: "slice",
+  finish: "finish",
+} as const;
+
+export const BACKGROUND_TYPES = { scheme: "scheme" } as const;
+
+type ToPage = typeof TARGETS.page;
+type ToOffscreen = typeof TARGETS.offscreen;
+
 export type PageMessage =
-  | { target: "page"; type: "prepare" }
-  | { target: "page"; type: "scroll"; y: number; hideFixed: boolean }
-  | { target: "page"; type: "restore" };
+  | { target: ToPage; type: typeof PAGE_TYPES.prepare }
+  | {
+      target: ToPage;
+      type: typeof PAGE_TYPES.scroll;
+      y: number;
+      hideFixed: boolean;
+    }
+  | { target: ToPage; type: typeof PAGE_TYPES.restore };
 
 export type OffscreenMessage =
-  | { target: "offscreen"; type: "begin"; width: number; height: number }
   | {
-      target: "offscreen";
-      type: "slice";
+      target: ToOffscreen;
+      type: typeof OFFSCREEN_TYPES.begin;
+      width: number;
+      height: number;
+    }
+  | {
+      target: ToOffscreen;
+      type: typeof OFFSCREEN_TYPES.slice;
       dataUrl: string;
       rects: Rect[];
       scroll: number;
     }
-  | { target: "offscreen"; type: "finish" };
+  | { target: ToOffscreen; type: typeof OFFSCREEN_TYPES.finish };
 
 export interface BackgroundMessage {
-  target: "background";
-  type: "scheme";
+  target: typeof TARGETS.background;
+  type: typeof BACKGROUND_TYPES.scheme;
   scheme: ColourScheme;
 }
 

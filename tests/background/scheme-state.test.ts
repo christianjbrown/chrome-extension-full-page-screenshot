@@ -1,7 +1,7 @@
 import {
   afterDevice,
   afterTab,
-  isColourScheme,
+  SCHEME_POLICY,
   toolbarScheme,
   UNKNOWN_SCHEME,
 } from "../../src/background/scheme-state";
@@ -41,12 +41,10 @@ describe("scheme state", () => {
 
     expect(state).toEqual({ device: "light", chrome: null });
   });
+});
 
-  it.each(["light", "dark"])("knows %s is a colour scheme", (value) => {
-    expect(isColourScheme(value)).toBe(true);
-  });
-
-  it.each(["sepia", null, 3])("knows %s is not a colour scheme", (value) => {
-    expect(isColourScheme(value)).toBe(false);
+describe("SCHEME_POLICY", () => {
+  it("is the scheme state functions", () => {
+    expect(SCHEME_POLICY).toEqual({ afterDevice, afterTab, toolbarScheme });
   });
 });

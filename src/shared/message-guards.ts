@@ -1,8 +1,12 @@
-import { COLOUR_SCHEMES } from "./colour-scheme";
+import { isColourScheme } from "./colour-scheme";
 import type {
+  BACKGROUND_TYPES,
   BackgroundMessage,
+  OFFSCREEN_TYPES,
   OffscreenMessage,
+  PAGE_TYPES,
   PageMessage,
+  Rect,
 } from "./messages";
 import { isFiniteNumber } from "./numbers";
 
@@ -13,30 +17,43 @@ export type MessageGuards<M extends { type: string }> = {
   [T in M["type"]]: (message: unknown) => message is Extract<M, { type: T }>;
 };
 
+type Of<M, T> = Extract<M, { type: T }>;
+
+const RECT_KEYS = [
+  "x",
+  "y",
+  "width",
+  "height",
+] as const satisfies readonly (keyof Rect)[];
+
 const isRect = (value: unknown): boolean => {
   const rect = value as Fields | null;
   return (
     typeof rect === "object" &&
     rect !== null &&
-    ["x", "y", "width", "height"].every((key) => isFiniteNumber(rect[key]))
+    RECT_KEYS.every((key) => isFiniteNumber(rect[key]))
   );
 };
 
 export const pageGuards: MessageGuards<PageMessage> = {
-  prepare: (_message): _message is Extract<PageMessage, { type: "prepare" }> =>
+  prepare: (_message): _message is Of<PageMessage, typeof PAGE_TYPES.prepare> =>
     true,
-  scroll: (message): message is Extract<PageMessage, { type: "scroll" }> =>
+  scroll: (message): message is Of<PageMessage, typeof PAGE_TYPES.scroll> =>
     isFiniteNumber((message as Fields).y) &&
     typeof (message as Fields).hideFixed === "boolean",
-  restore: (_message): _message is Extract<PageMessage, { type: "restore" }> =>
+  restore: (_message): _message is Of<PageMessage, typeof PAGE_TYPES.restore> =>
     true,
 };
 
 export const offscreenGuards: MessageGuards<OffscreenMessage> = {
-  begin: (message): message is Extract<OffscreenMessage, { type: "begin" }> =>
+  begin: (
+    message,
+  ): message is Of<OffscreenMessage, typeof OFFSCREEN_TYPES.begin> =>
     isFiniteNumber((message as Fields).width) &&
     isFiniteNumber((message as Fields).height),
-  slice: (message): message is Extract<OffscreenMessage, { type: "slice" }> => {
+  slice: (
+    message,
+  ): message is Of<OffscreenMessage, typeof OFFSCREEN_TYPES.slice> => {
     const fields = message as Fields;
     return (
       typeof fields.dataUrl === "string" &&
@@ -47,12 +64,12 @@ export const offscreenGuards: MessageGuards<OffscreenMessage> = {
   },
   finish: (
     _message,
-  ): _message is Extract<OffscreenMessage, { type: "finish" }> => true,
+  ): _message is Of<OffscreenMessage, typeof OFFSCREEN_TYPES.finish> => true,
 };
 
 export const backgroundGuards: MessageGuards<BackgroundMessage> = {
   scheme: (
     message,
-  ): message is Extract<BackgroundMessage, { type: "scheme" }> =>
-    (COLOUR_SCHEMES as readonly unknown[]).includes((message as Fields).scheme),
+  ): message is Of<BackgroundMessage, typeof BACKGROUND_TYPES.scheme> =>
+    isColourScheme((message as Fields).scheme),
 };

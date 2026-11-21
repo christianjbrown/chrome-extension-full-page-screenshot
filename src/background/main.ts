@@ -1,19 +1,26 @@
 // The service worker: builds the object graph and connects it to Chrome's events.
 import { CommandRouter } from "../shared/command-router";
+import { OwnContextFilter } from "../shared/message-filter";
 import { backgroundGuards } from "../shared/message-guards";
-import type {
-  BackgroundMessage,
-  OffscreenMessage,
-  Reply,
+import {
+  TARGETS,
+  type BackgroundMessage,
+  type OffscreenMessage,
+  type Reply,
 } from "../shared/messages";
+import { ReplyUnwrapper, SettledResponder } from "../shared/replies";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { CapturableTabs } from "./capturable-tabs";
 import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
-import { ChromeErrorExplainer } from "./chrome-errors";
+import { ChromeErrorExplainer, TRANSLATIONS } from "./chrome-errors";
 import { ClickScheme } from "./click-scheme";
+import { BACKGROUND_CONFIG } from "./config";
+import { DownloadCompletion } from "./download-completion";
 import { DownloadSaver } from "./download-saver";
+import { OFFSCREEN_DOCUMENT_PATH, PAGE_SCRIPT } from "./entries";
 import { ClaimedFilenames } from "./filename-claims";
+import { KebabSlugger, LocalTimeStamper } from "./file-name-parts";
 import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
@@ -21,6 +28,7 @@ import { PageClient } from "./page-client";
 import { FinitePageValidator } from "./page-validator";
 import { ReopeningDocument } from "./reopening-document";
 import { TimestampedNamer } from "./screenshot-namer";
+import { SCHEME_POLICY, UNKNOWN_SCHEME } from "./scheme-state";
 import { SchemeStore } from "./scheme-store";
 import { ScreenshotController } from "./screenshot-controller";
 import { SystemClock } from "./system-clock";
@@ -31,13 +39,15 @@ import { ToolbarScheme } from "./toolbar-scheme";
 import { ThrottledCapture, TimerSleeper } from "./visible-tab-capture";
 
 const clock = new SystemClock();
+const replies = new ReplyUnwrapper();
 const filenames = new ClaimedFilenames();
 const indicator = new ToolbarIndicator(chrome.action);
 // The device's scheme comes from the offscreen document and Chrome's own from a
 // clicked tab, so the icon is worked out from both.
 const toolbarScheme = new ToolbarScheme(
-  new SchemeStore(chrome.storage.local),
+  new SchemeStore(chrome.storage.local, UNKNOWN_SCHEME),
   new ToolbarIcon(chrome.action),
+  SCHEME_POLICY,
 );
 const clickScheme = new ClickScheme(
   new TabScheme(chrome.scripting),
@@ -49,19 +59,20 @@ const clickScheme = new ClickScheme(
 const offscreenPage = new OffscreenPage(
   chrome.offscreen,
   chrome.runtime,
-  "offscreen.html",
+  OFFSCREEN_DOCUMENT_PATH,
 );
 // A capture closes the document so that its blob URLs die, and the watcher has
 // to carry on afterwards.
 const stitcher = new OffscreenStitcher(
   new ReopeningDocument(offscreenPage),
   new RuntimeMessenger<OffscreenMessage>(chrome.runtime),
+  replies,
 );
 const router = new CommandRouter<BackgroundMessage>(
-  "background",
   { scheme: (message) => toolbarScheme.deviceIs(message.scheme) },
   backgroundGuards,
-  chrome.runtime.id,
+  new OwnContextFilter(chrome.runtime.id, TARGETS.background),
+  new SettledResponder(),
 );
 const controller = new ScreenshotController({
   targets: new CapturableTabs([
@@ -70,26 +81,40 @@ const controller = new ScreenshotController({
     new LocalFileRule(chrome.extension),
   ]),
   shooter: new FullPageShooter({
-    page: new PageClient(
-      chrome.scripting,
-      chrome.tabs,
-      "page.js",
-      new FinitePageValidator(),
-    ),
-    planner: new SlicePlanner(),
+    page: new PageClient({
+      scripting: chrome.scripting,
+      tabs: chrome.tabs,
+      file: PAGE_SCRIPT,
+      validator: new FinitePageValidator(),
+      replies,
+    }),
+    planner: new SlicePlanner({
+      maxPageHeight: BACKGROUND_CONFIG.maxPageHeight,
+      minFrameHeight: BACKGROUND_CONFIG.minFrameHeight,
+      maxSlices: BACKGROUND_CONFIG.maxSlices,
+    }),
     capture: new ThrottledCapture(
       chrome.tabs,
       clock,
       new TimerSleeper((callback, ms) => setTimeout(callback, ms)),
+      BACKGROUND_CONFIG.captureSpacingMs,
     ),
     stitcher,
     indicator,
   }),
   stitcher,
-  namer: new TimestampedNamer(clock),
-  saver: new DownloadSaver(chrome.downloads, filenames),
+  namer: new TimestampedNamer({
+    clock,
+    slugger: new KebabSlugger(BACKGROUND_CONFIG.maxTitleLength),
+    stamper: new LocalTimeStamper(),
+  }),
+  saver: new DownloadSaver(
+    chrome.downloads,
+    filenames,
+    new DownloadCompletion(chrome.downloads.onChanged),
+  ),
   indicator,
-  errors: new ChromeErrorExplainer(),
+  errors: new ChromeErrorExplainer(TRANSLATIONS),
 });
 
 chrome.action.onClicked.addListener((tab) => {

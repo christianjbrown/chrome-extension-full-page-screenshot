@@ -1,3 +1,5 @@
+import { REFUSALS } from "./refusals";
+
 // One reason Chrome will not let an extension capture a tab.
 export interface CaptureRule {
   blocks(url: string): Promise<boolean>;
@@ -10,11 +12,12 @@ export interface FileSchemeAccess {
 
 const BROWSER_PAGE =
   /^(chrome|chrome-extension|chrome-search|chrome-untrusted|devtools|edge|about|view-source):/;
+const FILE_URL = "file:";
 const WEB_STORE =
   /^https:\/\/(chromewebstore\.google\.com|chrome\.google\.com\/webstore)(\/|$)/;
 
 export class BrowserPageRule implements CaptureRule {
-  readonly reason = "Chrome does not let extensions capture its own pages";
+  readonly reason = REFUSALS.ownPages;
 
   blocks(url: string): Promise<boolean> {
     return Promise.resolve(BROWSER_PAGE.test(url));
@@ -22,7 +25,7 @@ export class BrowserPageRule implements CaptureRule {
 }
 
 export class WebStoreRule implements CaptureRule {
-  readonly reason = "Chrome does not let extensions capture the Web Store";
+  readonly reason = REFUSALS.webStore;
 
   blocks(url: string): Promise<boolean> {
     return Promise.resolve(WEB_STORE.test(url));
@@ -30,14 +33,14 @@ export class WebStoreRule implements CaptureRule {
 }
 
 export class LocalFileRule implements CaptureRule {
-  readonly reason =
-    "Turn on Allow access to file URLs for this extension to capture local files";
+  readonly reason = REFUSALS.localFiles;
 
   constructor(private readonly files: FileSchemeAccess) {}
 
   async blocks(url: string): Promise<boolean> {
     return (
-      url.startsWith("file:") && !(await this.files.isAllowedFileSchemeAccess())
+      url.startsWith(FILE_URL) &&
+      !(await this.files.isAllowedFileSchemeAccess())
     );
   }
 }

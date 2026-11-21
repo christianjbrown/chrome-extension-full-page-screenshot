@@ -3,30 +3,48 @@
 // service worker cannot make a blob URL and a full page PNG is far too big to
 // download as a data URL. And it watches Chrome's colour scheme, because a
 // service worker has no matchMedia.
+import { DARK_SCHEME_QUERY } from "../shared/colour-scheme";
 import { CommandRouter } from "../shared/command-router";
+import { OwnContextFilter } from "../shared/message-filter";
 import { offscreenGuards } from "../shared/message-guards";
-import type { OffscreenMessage, Reply } from "../shared/messages";
+import {
+  TARGETS,
+  type BackgroundMessage,
+  type OffscreenMessage,
+  type Reply,
+} from "../shared/messages";
+import { SettledResponder } from "../shared/replies";
+import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { BlobUrls } from "./blob-urls";
+import { OFFSCREEN_CONFIG } from "./config";
 import { DataUrlDecoder } from "./image-decoder";
 import { DeviceGeometry } from "./device-geometry";
 import { CanvasLimitCutter } from "./part-layout";
-import { DARK_SCHEME_QUERY, SchemeReporter } from "./scheme-reporter";
+import { CutPictureSizer } from "./picture";
+import { SchemeReporter } from "./scheme-reporter";
+import { PngSheetWriter } from "./sheet-writer";
 import { Stitcher } from "./stitcher";
 import { OffscreenCanvasSurfaces } from "./surfaces";
 
+const geometry = new DeviceGeometry();
 const stitcher = new Stitcher({
   // Browser functions are wrapped so they are never called with the wrong `this`.
   decoder: new DataUrlDecoder(
     (url) => fetch(url),
     (blob) => createImageBitmap(blob),
   ),
-  cutter: new CanvasLimitCutter(),
+  sizer: new CutPictureSizer(
+    geometry,
+    new CanvasLimitCutter(
+      OFFSCREEN_CONFIG.maxPartSide,
+      OFFSCREEN_CONFIG.maxPartPixels,
+    ),
+  ),
+  placing: geometry,
   surfaces: new OffscreenCanvasSurfaces(OffscreenCanvas),
-  geometry: new DeviceGeometry(),
-  urls: new BlobUrls(URL),
+  writer: new PngSheetWriter(new BlobUrls(URL)),
 });
 const router = new CommandRouter<OffscreenMessage>(
-  "offscreen",
   {
     begin: (message) => stitcher.begin(message.width, message.height),
     slice: (message) =>
@@ -34,7 +52,8 @@ const router = new CommandRouter<OffscreenMessage>(
     finish: () => stitcher.finish(),
   },
   offscreenGuards,
-  chrome.runtime.id,
+  new OwnContextFilter(chrome.runtime.id, TARGETS.offscreen),
+  new SettledResponder(),
 );
 
 chrome.runtime.onMessage.addListener(
@@ -44,8 +63,9 @@ chrome.runtime.onMessage.addListener(
 
 new SchemeReporter(
   window.matchMedia(DARK_SCHEME_QUERY),
-  chrome.runtime,
+  new RuntimeMessenger<BackgroundMessage>(chrome.runtime),
   (work, everyMs) => {
     window.setInterval(work, everyMs);
   },
+  OFFSCREEN_CONFIG.schemeCheckMs,
 ).start();

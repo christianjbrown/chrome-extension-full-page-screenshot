@@ -7,11 +7,14 @@ export interface Placement {
 }
 
 // Turns the page's CSS pixels into the capture's device pixels.
-export interface Geometry {
+export interface Scaling {
   // The capture's own width fixes the scale, which takes in the screen's pixel
   // ratio and the page zoom together.
   scaleFor(captureWidth: number, pageWidth: number): number;
   heightOf(pageHeight: number, scale: number): number;
+}
+
+export interface Placing {
   // Where the box sits in the capture and in the picture, cut off at the
   // bottom of the picture.
   place(
@@ -22,7 +25,7 @@ export interface Geometry {
   ): Placement;
 }
 
-export class DeviceGeometry implements Geometry {
+export class DeviceGeometry implements Scaling, Placing {
   scaleFor(captureWidth: number, pageWidth: number): number {
     return captureWidth / pageWidth;
   }

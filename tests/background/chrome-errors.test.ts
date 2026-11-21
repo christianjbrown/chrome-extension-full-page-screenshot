@@ -1,7 +1,10 @@
-import { ChromeErrorExplainer } from "../../src/background/chrome-errors";
+import {
+  ChromeErrorExplainer,
+  TRANSLATIONS,
+} from "../../src/background/chrome-errors";
 
 const explain = (message: string) =>
-  new ChromeErrorExplainer().explain(new Error(message));
+  new ChromeErrorExplainer(TRANSLATIONS).explain(new Error(message));
 
 describe("ChromeErrorExplainer", () => {
   it.each([
@@ -35,6 +38,8 @@ describe("ChromeErrorExplainer", () => {
 
   it("passes anything else through as it is", () => {
     expect(explain("FILE_NO_SPACE")).toBe("FILE_NO_SPACE");
-    expect(new ChromeErrorExplainer().explain("plain")).toBe("plain");
+    expect(new ChromeErrorExplainer(TRANSLATIONS).explain("plain")).toBe(
+      "plain",
+    );
   });
 });

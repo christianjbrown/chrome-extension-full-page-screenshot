@@ -1,9 +1,11 @@
 import type { PageLayout } from "../shared/messages";
+import { PROPERTY, VALUE } from "./css";
 import type { ImageWaiter } from "./image-waiter";
 import type { Freezer } from "./layout-freezer";
 import type { Scroller } from "./scrollers";
 import type { Settler } from "./settler";
 import type { StyleOverrides, StyleRestoration, Styled } from "./style-ledger";
+import type { Viewport } from "./viewport";
 
 // What the service worker asks of the page while it captures.
 interface PageCommands {
@@ -23,8 +25,10 @@ export interface PageControllerDependencies {
   settler: Settler;
   images: ImageWaiter;
   root: Styled;
-  viewport: { innerWidth: number; innerHeight: number };
+  viewport: Viewport;
 }
+
+const NOT_PREPARED = "The page was not prepared";
 
 interface Session {
   scroller: Scroller;
@@ -41,9 +45,10 @@ export class PageController implements PageCommands {
     this.session = { scroller, origin: scroller.position() };
     // Smooth scrolling would still be moving when the slice is taken, and a
     // classic scrollbar would be painted into every slice.
-    this.deps.ledger.override(this.deps.root, "scroll-behavior", "auto");
-    this.deps.ledger.override(scroller.styled, "scroll-behavior", "auto");
-    this.deps.ledger.override(scroller.styled, "scrollbar-width", "none");
+    const { ledger, root } = this.deps;
+    ledger.override(root, PROPERTY.scrollBehavior, VALUE.auto);
+    ledger.override(scroller.styled, PROPERTY.scrollBehavior, VALUE.auto);
+    ledger.override(scroller.styled, PROPERTY.scrollbarWidth, VALUE.none);
     this.deps.freezer.freeze(false);
     const frame = scroller.frame();
     return Promise.resolve({
@@ -82,7 +87,7 @@ export class PageController implements PageCommands {
 
   private started(): Session {
     if (this.session === undefined) {
-      throw new Error("The page was not prepared");
+      throw new Error(NOT_PREPARED);
     }
     return this.session;
   }

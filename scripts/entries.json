@@ -1,0 +1,5 @@
+{
+  "background": "src/background/main.ts",
+  "page": "src/page/main.ts",
+  "offscreen": "src/offscreen/main.ts"
+}

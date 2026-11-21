@@ -1,4 +1,4 @@
-import { LayoutFreezer } from "../../src/page/layout-freezer";
+import { FREEZE_RULES, LayoutFreezer } from "../../src/page/layout-freezer";
 import { StyleLedger } from "../../src/page/style-ledger";
 import { FakeElements, fakeElement } from "./fakes";
 
@@ -14,7 +14,7 @@ function setUp() {
     plain,
     elements,
     ledger,
-    freezer: new LayoutFreezer(elements, ledger),
+    freezer: new LayoutFreezer(elements, ledger, FREEZE_RULES),
   };
 }
 
@@ -44,6 +44,21 @@ describe("LayoutFreezer", () => {
     expect(fixed.style.getPropertyValue("opacity")).toBe("0");
     expect(fixed.style.getPropertyValue("transition")).toBe("none");
     expect(plain.style.values.size).toBe(0);
+  });
+
+  it("follows the rules it is given", () => {
+    const { sticky, fixed, elements, ledger } = setUp();
+    const rules = new Map([
+      [
+        "fixed",
+        { applies: () => true, overrides: [["color", "red"]] as const },
+      ],
+    ]);
+
+    new LayoutFreezer(elements, ledger, rules).freeze(false);
+
+    expect(fixed.style.getPropertyValue("color")).toBe("red");
+    expect(sticky.style.values.size).toBe(0);
   });
 
   it("catches elements that only became fixed after scrolling", () => {

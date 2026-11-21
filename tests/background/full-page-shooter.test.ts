@@ -14,7 +14,11 @@ function setUp() {
   };
   const shooter = new FullPageShooter({
     page,
-    planner: new SlicePlanner(),
+    planner: new SlicePlanner({
+      maxPageHeight: 60000,
+      minFrameHeight: 100,
+      maxSlices: 1000,
+    }),
     capture,
     stitcher,
     indicator,

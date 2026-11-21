@@ -1,16 +1,14 @@
-import type { ColourScheme } from "../shared/colour-scheme";
-import type { BackgroundMessage } from "../shared/messages";
-
-export const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
-export const SCHEME_CHECK_MS = 1000;
+import { schemeFor, type ColourScheme } from "../shared/colour-scheme";
+import {
+  BACKGROUND_TYPES,
+  TARGETS,
+  type BackgroundMessage,
+  type MessageSender,
+} from "../shared/messages";
 
 // The part of a MediaQueryList this needs.
 export interface SchemeQuery {
   readonly matches: boolean;
-}
-
-export interface MessageChannel {
-  sendMessage(message: BackgroundMessage): Promise<unknown>;
 }
 
 // Runs the work again and again, the way setInterval does.
@@ -26,27 +24,32 @@ export class SchemeReporter {
 
   constructor(
     private readonly dark: SchemeQuery,
-    private readonly channel: MessageChannel,
+    private readonly messages: MessageSender<BackgroundMessage>,
     private readonly repeat: Repeat,
+    private readonly everyMs: number,
   ) {}
 
   start(): void {
     this.check();
     this.repeat(() => {
       this.check();
-    }, SCHEME_CHECK_MS);
+    }, this.everyMs);
   }
 
   // Nobody waits for an answer: the service worker repaints the button. A
   // report that did not arrive is forgotten, so the next look sends it again.
   private check(): void {
-    const scheme: ColourScheme = this.dark.matches ? "dark" : "light";
+    const scheme = schemeFor(this.dark.matches);
     if (scheme === this.reported) {
       return;
     }
     this.reported = scheme;
-    this.channel
-      .sendMessage({ target: "background", type: "scheme", scheme })
+    this.messages
+      .send({
+        target: TARGETS.background,
+        type: BACKGROUND_TYPES.scheme,
+        scheme,
+      })
       .catch(() => {
         this.reported = undefined;
       });
