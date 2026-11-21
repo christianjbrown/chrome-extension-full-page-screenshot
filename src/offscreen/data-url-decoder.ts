@@ -8,6 +8,10 @@ export type BitmapMaker = (blob: Blob) => Promise<Bitmap>;
 const PNG_DATA_URL = `data:${PNG_TYPE};base64,`;
 const NOT_PNG = "The capture is not a PNG data URL";
 
+// The capture comes from another context, so even its type is checked.
+const isPngDataUrl = (value: unknown): boolean =>
+  typeof value === "string" && value.startsWith(PNG_DATA_URL);
+
 export class DataUrlDecoder implements ImageDecoder {
   constructor(
     private readonly fetch: Fetcher,
@@ -15,7 +19,7 @@ export class DataUrlDecoder implements ImageDecoder {
   ) {}
 
   async decode(dataUrl: string): Promise<Bitmap> {
-    if (typeof dataUrl !== "string" || !dataUrl.startsWith(PNG_DATA_URL)) {
+    if (!isPngDataUrl(dataUrl)) {
       throw new Error(NOT_PNG);
     }
     const response = await this.fetch(dataUrl);

@@ -8,9 +8,11 @@ export class ChromeErrorExplainer implements ErrorExplainer {
 
   explain(error: unknown): string {
     const message = errorMessage(error);
-    return (
-      this.translations.find(({ pattern }) => pattern.test(message))?.message ??
-      message
-    );
+    return this.translationOf(message) ?? message;
+  }
+
+  private translationOf(message: string): string | undefined {
+    return this.translations.find(({ pattern }) => pattern.test(message))
+      ?.message;
   }
 }

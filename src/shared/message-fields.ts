@@ -1,8 +1,6 @@
+import { isFields } from "./fields";
 import type { Rect } from "./messages";
 import { isFiniteNumber } from "./numbers";
-
-// A message's fields, before they are checked.
-export type Fields = Record<string, unknown>;
 
 const RECT_KEYS = [
   "x",
@@ -11,11 +9,5 @@ const RECT_KEYS = [
   "height",
 ] as const satisfies readonly (keyof Rect)[];
 
-export const isRect = (value: unknown): boolean => {
-  const rect = value as Fields | null;
-  return (
-    typeof rect === "object" &&
-    rect !== null &&
-    RECT_KEYS.every((key) => isFiniteNumber(rect[key]))
-  );
-};
+export const isRect = (value: unknown): boolean =>
+  isFields(value) && RECT_KEYS.every((key) => isFiniteNumber(value[key]));

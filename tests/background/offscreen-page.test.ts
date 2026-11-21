@@ -1,3 +1,4 @@
+import { SerialQueue } from "../../src/shared/serial-queue";
 import {
   OFFSCREEN_JUSTIFICATION,
   OffscreenPage,
@@ -26,7 +27,12 @@ function setUp(open = false) {
     state,
     documents,
     contexts,
-    page: new OffscreenPage(documents, contexts, "offscreen.html"),
+    page: new OffscreenPage(
+      documents,
+      contexts,
+      new SerialQueue(),
+      "offscreen.html",
+    ),
   };
 }
 

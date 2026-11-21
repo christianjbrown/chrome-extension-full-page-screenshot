@@ -1,5 +1,5 @@
 import type { Command, MessageOf } from "../shared/command";
-import type { Fields } from "../shared/message-fields";
+import type { Fields } from "../shared/fields";
 import { OFFSCREEN_TYPES, type OffscreenMessage } from "../shared/messages";
 import { isFiniteNumber } from "../shared/numbers";
 import type { StitchStarter } from "./stitch-commands";

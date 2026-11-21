@@ -1,5 +1,6 @@
 // Everything the service worker, the page and the offscreen document say to each other.
 import type { ColourScheme } from "./colour-scheme";
+import { isFields } from "./fields";
 
 // Where the page scrolls, in CSS pixels. The frame is the part of the viewport
 // that scrolls: all of it for a normal page, or one inner element's box when
@@ -86,9 +87,5 @@ export function isMessageFor(
   message: unknown,
   target: string,
 ): message is { target: string; type: string } {
-  return (
-    typeof message === "object" &&
-    message !== null &&
-    (message as { target?: unknown }).target === target
-  );
+  return isFields(message) && message.target === target;
 }

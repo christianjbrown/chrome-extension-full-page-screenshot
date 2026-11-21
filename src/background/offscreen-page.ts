@@ -1,3 +1,4 @@
+import type { Sequencer } from "../shared/sequencer";
 import type { HiddenDocument } from "./hidden-document";
 
 const OFFSCREEN_REASONS = ["BLOBS", "MATCH_MEDIA"] as const;
@@ -30,16 +31,15 @@ export interface ContextLookup {
 // while another begins, so every open and close waits its turn and looks at
 // what Chrome has open when that turn comes.
 export class OffscreenPage implements HiddenDocument {
-  private last: Promise<void> = Promise.resolve();
-
   constructor(
     private readonly documents: OffscreenDocuments,
     private readonly contexts: ContextLookup,
+    private readonly queue: Sequencer,
     private readonly path: string,
   ) {}
 
   open(): Promise<void> {
-    return this.inTurn(async () => {
+    return this.queue.run(async () => {
       if (!(await this.isOpen())) {
         await this.documents.createDocument({
           url: this.path,
@@ -51,18 +51,11 @@ export class OffscreenPage implements HiddenDocument {
   }
 
   close(): Promise<void> {
-    return this.inTurn(async () => {
+    return this.queue.run(async () => {
       if (await this.isOpen()) {
         await this.documents.closeDocument();
       }
     });
-  }
-
-  // A turn that failed does not stop the ones queued behind it.
-  private inTurn(work: () => Promise<void>): Promise<void> {
-    const turn = this.last.then(work);
-    this.last = turn.catch(() => undefined);
-    return turn;
   }
 
   private async isOpen(): Promise<boolean> {

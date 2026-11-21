@@ -24,7 +24,14 @@ function deepestScroll(layout: PageLayout, maxPageHeight: number): number {
   );
 }
 
-function scrollsDownTo(
+function checkCount(scrolls: number[], maxSlices: number): void {
+  if (scrolls.length > maxSlices) {
+    throw new Error(TOO_LONG);
+  }
+}
+
+// The top, then one step at a time while the deepest scroll is still below.
+function stepsAbove(
   deepest: number,
   step: number,
   maxSlices: number,
@@ -32,18 +39,29 @@ function scrollsDownTo(
   const scrolls = [0];
   for (let scroll = step; scroll < deepest; scroll += step) {
     scrolls.push(scroll);
-    if (scrolls.length > maxSlices) {
-      throw new Error(TOO_LONG);
-    }
-  }
-  if (deepest > 0) {
-    scrolls.push(deepest);
+    checkCount(scrolls, maxSlices);
   }
   return scrolls;
 }
 
+// Always starts at the top, and ends at the deepest scroll when there is one.
+function scrollsDownTo(
+  deepest: number,
+  step: number,
+  maxSlices: number,
+): number[] {
+  const scrolls = stepsAbove(deepest, step, maxSlices);
+  return deepest > 0 ? [...scrolls, deepest] : scrolls;
+}
+
+// A frame scrolled off screen, or tall enough to step by, is used as it is.
+const isUsableFrame = (frameHeight: number, minFrameHeight: number): boolean =>
+  frameHeight <= 0 || frameHeight >= minFrameHeight;
+
+const hasHeight = (rect: Rect): boolean => rect.height > 0;
+
 function withRealFrame(layout: PageLayout, minFrameHeight: number): PageLayout {
-  if (layout.frameHeight <= 0 || layout.frameHeight >= minFrameHeight) {
+  if (isUsableFrame(layout.frameHeight, minFrameHeight)) {
     return layout;
   }
   return {
@@ -81,20 +99,23 @@ export class SlicePlanner implements CapturePlanner {
       height: frameBottom - top,
     });
     const deepest = deepestScroll(layout, maxPageHeight);
-    const scrolls = scrollsDownTo(deepest, frameHeight, maxSlices);
-    let coveredTo = 0;
-    const slices = scrolls.map((scroll, index) => {
-      const rects = [
-        index === 0
-          ? across(0, frameBottom)
-          : framed(frameTop + coveredTo - scroll),
-      ];
-      if (index === scrolls.length - 1) {
-        rects.push(across(frameBottom, viewportHeight));
-      }
-      coveredTo = scroll + frameHeight;
-      return { scroll, rects: rects.filter((rect) => rect.height > 0) };
-    });
+    // The first scroll is always the top, which takes the whole viewport.
+    const [, ...later] = scrollsDownTo(deepest, frameHeight, maxSlices);
+    let coveredTo = frameHeight;
+    const tops = [
+      { scroll: 0, rects: [across(0, frameBottom)] },
+      ...later.map((scroll) => {
+        const rects = [framed(frameTop + coveredTo - scroll)];
+        coveredTo = scroll + frameHeight;
+        return { scroll, rects };
+      }),
+    ];
+    const last = tops.length - 1;
+    const below = across(frameBottom, viewportHeight);
+    const slices = tops.map(({ scroll, rects }, index) => ({
+      scroll,
+      rects: (index === last ? [...rects, below] : rects).filter(hasHeight),
+    }));
     return { width: viewportWidth, height: viewportHeight + deepest, slices };
   }
 }

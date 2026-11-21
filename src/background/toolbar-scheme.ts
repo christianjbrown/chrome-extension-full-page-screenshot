@@ -1,4 +1,5 @@
 import type { ColourScheme } from "../shared/colour-scheme";
+import type { Sequencer } from "../shared/sequencer";
 import type {
   DeviceSchemeSink,
   SchemeIcon,
@@ -11,11 +12,10 @@ import type {
 // Works out which colour scheme the toolbar is in from the two things that
 // report one, and keeps the button's icon in step.
 export class ToolbarScheme implements DeviceSchemeSink, TabSchemeSink {
-  private last: Promise<void> = Promise.resolve();
-
   constructor(
     private readonly memory: SchemeMemory,
     private readonly icon: SchemeIcon,
+    private readonly queue: Sequencer,
     private readonly policy: SchemePolicy,
   ) {}
 
@@ -31,12 +31,10 @@ export class ToolbarScheme implements DeviceSchemeSink, TabSchemeSink {
 
   // One at a time, so a report cannot save over one that arrived beside it.
   private update(change: (state: SchemeState) => SchemeState): Promise<void> {
-    const turn = this.last.then(async () => {
+    return this.queue.run(async () => {
       const next = change(await this.memory.load());
       await this.memory.save(next);
       await this.icon.show(this.policy.toolbarScheme(next));
     });
-    this.last = turn.catch(() => undefined);
-    return turn;
   }
 }

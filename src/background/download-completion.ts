@@ -20,6 +20,16 @@ const DOWNLOAD_STATES = {
 } as const;
 const INTERRUPTED = "Download interrupted";
 
+const stateOf = (delta: DownloadDelta): string | undefined =>
+  delta.state?.current;
+
+// Chrome's reason, or a plain one when it gives none.
+const orInterrupted = (reason: string | undefined): string =>
+  reason ?? INTERRUPTED;
+
+const reasonOf = (delta: DownloadDelta): string =>
+  orInterrupted(delta.error?.current);
+
 // Resolves when the download completes, and fails with Chrome's reason when it
 // is interrupted.
 export class DownloadCompletion implements DownloadWaiter {
@@ -27,18 +37,27 @@ export class DownloadCompletion implements DownloadWaiter {
 
   finished(id: number): Promise<void> {
     return new Promise((resolve, reject) => {
+      const stop = (settle: () => void): void => {
+        this.changes.removeListener(listener);
+        settle();
+      };
+      const onComplete = (delta: DownloadDelta): void => {
+        if (stateOf(delta) === DOWNLOAD_STATES.complete) {
+          stop(resolve);
+        }
+      };
+      const onInterrupted = (delta: DownloadDelta): void => {
+        if (stateOf(delta) === DOWNLOAD_STATES.interrupted) {
+          stop(() => {
+            reject(new Error(reasonOf(delta)));
+          });
+        }
+      };
+      // Chrome reports every download's changes, so only this one's count.
       const listener: DeltaListener = (delta) => {
-        if (delta.id !== id) {
-          return;
-        }
-        const state = delta.state?.current;
-        if (state === DOWNLOAD_STATES.complete) {
-          this.changes.removeListener(listener);
-          resolve();
-        }
-        if (state === DOWNLOAD_STATES.interrupted) {
-          this.changes.removeListener(listener);
-          reject(new Error(delta.error?.current ?? INTERRUPTED));
+        if (delta.id === id) {
+          onComplete(delta);
+          onInterrupted(delta);
         }
       };
       this.changes.addListener(listener);

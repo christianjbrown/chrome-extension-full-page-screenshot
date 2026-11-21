@@ -15,6 +15,16 @@ export function tabPrefersDark(): boolean {
   return matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
+type Frames = { result?: unknown }[];
+
+// Anything but a yes or no means the tab could not say.
+const schemeOfResult = (result: unknown): ColourScheme | undefined =>
+  typeof result === "boolean" ? schemeFor(result) : undefined;
+
+// The top frame's answer, when there is a frame at all.
+const schemeOf = ([frame]: Frames): ColourScheme | undefined =>
+  schemeOfResult(frame?.result);
+
 // Reads the colour scheme from a page in a tab, which follows Chrome's own
 // Light and Dark setting. Only works in a tab the extension has been let into.
 export class TabScheme implements SchemeReader {
@@ -23,14 +33,12 @@ export class TabScheme implements SchemeReader {
   // Chrome's own pages, and tabs that have closed, cannot be asked.
   async read(tabId: number): Promise<ColourScheme | undefined> {
     try {
-      const [frame] = await this.scripting.executeScript({
-        target: { tabId },
-        func: tabPrefersDark,
-      });
-      if (typeof frame?.result !== "boolean") {
-        return undefined;
-      }
-      return schemeFor(frame.result);
+      return schemeOf(
+        await this.scripting.executeScript({
+          target: { tabId },
+          func: tabPrefersDark,
+        }),
+      );
     } catch {
       return undefined;
     }

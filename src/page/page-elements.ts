@@ -5,8 +5,16 @@ export interface ComputedLook {
   overflowY: string;
 }
 
-export interface PageElement extends Styled {
+// Anything whose content can be taller than the space it shows it in.
+export interface Tall {
   scrollHeight: number;
+}
+
+// The document's root as the window's scroller sees it: how tall the page is,
+// and the inline style that steadies it.
+export interface ScrollingRoot extends Styled, Tall {}
+
+export interface PageElement extends ScrollingRoot {
   clientHeight: number;
   clientWidth: number;
   clientTop: number;

@@ -25,11 +25,10 @@ export class TimestampedNamer implements ScreenshotNamer {
 
   // One part is the plain name; a page cut into parts numbers each of them.
   name(title: string | undefined, urls: string[]): NamedFile[] {
-    const { clock, slugger, stamper } = this.deps;
-    const name = [
-      stamper.stamp(clock.now()),
-      slugger.slug(title ?? NO_TITLE) || UNTITLED,
-    ].join(SEPARATOR);
+    const { clock, stamper } = this.deps;
+    const name = [stamper.stamp(clock.now()), this.titlePart(title)].join(
+      SEPARATOR,
+    );
     return urls.map((url, index) => ({
       url,
       filename:
@@ -37,5 +36,13 @@ export class TimestampedNamer implements ScreenshotNamer {
           ? `${name}${PNG_EXTENSION}`
           : `${name}${PART}${String(index + 1)}${PNG_EXTENSION}`,
     }));
+  }
+
+  private titlePart(title: string | undefined): string {
+    return this.slugOf(title) || UNTITLED;
+  }
+
+  private slugOf(title: string | undefined): string {
+    return this.deps.slugger.slug(title ?? NO_TITLE);
   }
 }

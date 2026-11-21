@@ -13,8 +13,11 @@ export class OwnContextFilter implements MessageFilter {
     message: unknown,
     sender: Sender | undefined,
   ): message is { target: string; type: unknown } {
-    return (
-      sender?.id === this.extensionId && isMessageFor(message, this.target)
-    );
+    return this.fromExtension(sender) && isMessageFor(message, this.target);
+  }
+
+  // Chrome leaves the sender out for some events, and those are not ours.
+  private fromExtension(sender: Sender | undefined): boolean {
+    return sender?.id === this.extensionId;
   }
 }

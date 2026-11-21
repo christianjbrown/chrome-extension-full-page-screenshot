@@ -1,6 +1,6 @@
-import type { Placing } from "./geometry";
+import type { Placement, Placing } from "./geometry";
 import type { ImageDecoder } from "./image-decoder";
-import type { PageSize, Picture, PictureSizer } from "./picture";
+import type { PageSize, Picture, PictureSizer, Sheet } from "./picture";
 import type { SheetWriter } from "./sheet-writer";
 import type {
   SlicePainter,
@@ -15,6 +15,11 @@ const ERRORS = {
   size: "The page has an unusable size",
   scroll: "The page has an unusable scroll position",
 } as const;
+
+const isPositiveSize = (width: number, height: number): boolean =>
+  isPositiveNumber(width) && isPositiveNumber(height);
+
+const hasUrl = (url: string | undefined): url is string => url !== undefined;
 
 export interface StitcherDependencies {
   decoder: ImageDecoder;
@@ -34,7 +39,7 @@ export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
   constructor(private readonly deps: StitcherDependencies) {}
 
   begin(width: number, height: number): Promise<void> {
-    if (!isPositiveNumber(width) || !isPositiveNumber(height)) {
+    if (!isPositiveSize(width, height)) {
       return Promise.reject(new Error(ERRORS.size));
     }
     this.page = { width, height };
@@ -48,26 +53,45 @@ export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
     }
     const image = await this.deps.decoder.decode(dataUrl);
     try {
-      this.picture ??= this.deps.sizer.size(image.width, this.page);
-      for (const rect of rects) {
-        await this.paint(this.picture, image, rect, scroll);
-      }
+      await this.paintAll(this.pictureFor(image), image, rects, scroll);
     } finally {
       image.close();
     }
   }
 
   async finish(): Promise<string[]> {
-    const sheets = this.picture?.sheets ?? [];
-    const urls: string[] = [];
-    for (const sheet of sheets) {
-      await this.deps.writer.writeOut(sheet);
-      if (sheet.url !== undefined) {
-        urls.push(sheet.url);
-      }
-    }
+    const urls = await this.writeAll(this.sheets());
     this.picture = undefined;
     return urls;
+  }
+
+  // The first capture sets the picture's size.
+  private pictureFor(image: Bitmap): Picture {
+    this.picture ??= this.deps.sizer.size(image.width, this.page);
+    return this.picture;
+  }
+
+  // Nothing painted yet means nothing to write.
+  private sheets(): Sheet[] {
+    return this.picture === undefined ? [] : this.picture.sheets;
+  }
+
+  private async writeAll(sheets: Sheet[]): Promise<string[]> {
+    for (const sheet of sheets) {
+      await this.deps.writer.writeOut(sheet);
+    }
+    return sheets.map((sheet) => sheet.url).filter(hasUrl);
+  }
+
+  private async paintAll(
+    picture: Picture,
+    image: Bitmap,
+    rects: Rect[],
+    scroll: number,
+  ): Promise<void> {
+    for (const rect of rects) {
+      await this.paint(picture, image, rect, scroll);
+    }
   }
 
   private async paint(
@@ -76,22 +100,50 @@ export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
     rect: Rect,
     scroll: number,
   ): Promise<void> {
-    const { source, top } = this.deps.placing.place(
+    const placement = this.deps.placing.place(
       rect,
       scroll,
       picture.scale,
       picture.height,
     );
     for (const sheet of picture.sheets) {
-      if (sheet.top + sheet.height <= top) {
-        await this.deps.writer.writeOut(sheet);
-      } else if (sheet.top < top + source.height) {
-        sheet.surface ??= this.deps.surfaces.create(
-          picture.width,
-          sheet.height,
-        );
-        sheet.surface.draw(image, source, top - sheet.top);
-      }
+      await this.paintSheet(picture, sheet, image, placement);
     }
+  }
+
+  // A sheet the slices have moved past is finished, so it is written out.
+  private async paintSheet(
+    picture: Picture,
+    sheet: Sheet,
+    image: Bitmap,
+    placement: Placement,
+  ): Promise<void> {
+    if (sheet.top + sheet.height <= placement.top) {
+      await this.deps.writer.writeOut(sheet);
+      return;
+    }
+    this.drawIfCovered(picture, sheet, image, placement);
+  }
+
+  private drawIfCovered(
+    picture: Picture,
+    sheet: Sheet,
+    image: Bitmap,
+    placement: Placement,
+  ): void {
+    if (sheet.top < placement.top + placement.source.height) {
+      this.draw(picture, sheet, image, placement);
+    }
+  }
+
+  // A sheet gets its surface when the first slice reaches it.
+  private draw(
+    picture: Picture,
+    sheet: Sheet,
+    image: Bitmap,
+    { source, top }: Placement,
+  ): void {
+    sheet.surface ??= this.deps.surfaces.create(picture.width, sheet.height);
+    sheet.surface.draw(image, source, top - sheet.top);
   }
 }
