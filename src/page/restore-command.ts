@@ -1,5 +1,6 @@
 import type { Command } from "../shared/command";
-import { isAddressed, type PageMessage } from "../shared/messages";
+import { isAddressed } from "../shared/addressing";
+import type { PageMessage } from "../shared/messages";
 import { RESTORE, type RestoreMessage } from "../shared/restore-message";
 import { TARGETS } from "../shared/targets";
 import type { Restorable } from "./restorable";

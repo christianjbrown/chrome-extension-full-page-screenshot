@@ -1,6 +1,7 @@
 import type { Command } from "../shared/command";
 import type { Fields } from "../shared/fields";
-import { isAddressed, type PageMessage } from "../shared/messages";
+import { isAddressed } from "../shared/addressing";
+import type { PageMessage } from "../shared/messages";
 import { isFiniteNumber } from "../shared/numbers";
 import { SCROLL, type ScrollMessage } from "../shared/scroll-message";
 import { TARGETS } from "../shared/targets";

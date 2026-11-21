@@ -1,5 +1,6 @@
 import type { Command } from "../shared/command";
-import { isAddressed, type PageMessage } from "../shared/messages";
+import { isAddressed } from "../shared/addressing";
+import type { PageMessage } from "../shared/messages";
 import type { PageLayout } from "../shared/page-layout";
 import { PREPARE, type PrepareMessage } from "../shared/prepare-message";
 import { TARGETS } from "../shared/targets";

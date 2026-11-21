@@ -1,5 +1,5 @@
 import { errorMessage } from "../../src/shared/error-message";
-import { isAddressed, isMessageFor } from "../../src/shared/messages";
+import { isAddressed, isMessageFor } from "../../src/shared/addressing";
 import { RuntimeMessenger } from "../../src/shared/runtime-messenger";
 
 describe("isMessageFor", () => {
