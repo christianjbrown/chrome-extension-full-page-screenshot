@@ -16,4 +16,3 @@ export type OffscreenMessage = BeginMessage | SliceMessage | FinishMessage;
 export type BackgroundMessage = SchemeMessage;
 
 export type Reply<T> = { ok: true; value: T } | { ok: false; error: string };
-

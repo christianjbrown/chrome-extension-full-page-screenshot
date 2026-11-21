@@ -47,7 +47,12 @@ import { tabPrefersDark } from "./tab-probe";
 import { TabScheme } from "./tab-scheme";
 import { ToolbarIcon } from "./toolbar-icon";
 import { ToolbarIndicator } from "./toolbar-indicator";
-import { BADGES, COLOURS, TITLES } from "./toolbar-looks";
+import {
+  CAPTURING_LOOK,
+  FAILED_LOOK,
+  IDLE_LOOK,
+  SAVING_LOOK,
+} from "./toolbar-looks";
 import { FailedStage, ProgressStage, SteadyStage } from "./toolbar-stages";
 import { ToolbarScheme } from "./toolbar-scheme";
 import type { ScreenshotStages } from "./screenshot-indicator";
@@ -82,22 +87,10 @@ const filenames: ClaimedFilenames = new ClaimedFilenames(
 );
 const indicator = new ToolbarIndicator(chrome.action);
 const stages = {
-  idle: new SteadyStage({
-    badge: BADGES.none,
-    colour: COLOURS.idle,
-    title: TITLES.idle,
-  }),
-  progress: new ProgressStage(COLOURS.busy, TITLES.capturing),
-  saving: new SteadyStage({
-    badge: BADGES.saving,
-    colour: COLOURS.busy,
-    title: TITLES.saving,
-  }),
-  failed: new FailedStage({
-    badge: BADGES.failed,
-    colour: COLOURS.failed,
-    title: TITLES.failedBecause,
-  }),
+  idle: new SteadyStage(IDLE_LOOK),
+  progress: new ProgressStage(CAPTURING_LOOK),
+  saving: new SteadyStage(SAVING_LOOK),
+  failed: new FailedStage(FAILED_LOOK),
 } satisfies ScreenshotStages;
 // The device's scheme comes from the offscreen document and Chrome's own from a
 // clicked tab, so the icon is worked out from both.

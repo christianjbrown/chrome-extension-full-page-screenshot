@@ -1,4 +1,4 @@
-import { TITLES } from "../src/background/toolbar-looks";
+import { IDLE_LOOK } from "../src/background/toolbar-looks";
 import manifest from "../static/manifest.json";
 
 describe("manifest", () => {
@@ -26,7 +26,7 @@ describe("manifest", () => {
   });
 
   it("starts with the title the button goes back to when idle", () => {
-    expect(manifest.action.default_title).toBe(TITLES.idle);
+    expect(manifest.action.default_title).toBe(IDLE_LOOK.title);
   });
 
   it("has no keyboard shortcut", () => {
