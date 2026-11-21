@@ -12,23 +12,29 @@ import { OFFSCREEN_CONFIG } from "./config";
 import { DataUrlDecoder } from "./image-decoder";
 import { DeviceGeometry } from "./device-geometry";
 import { CanvasLimitCutter } from "./part-layout";
+import { CutPictureSizer } from "./picture";
 import { SchemeReporter } from "./scheme-reporter";
+import { PngSheetWriter } from "./sheet-writer";
 import { Stitcher } from "./stitcher";
 import { OffscreenCanvasSurfaces } from "./surfaces";
 
+const geometry = new DeviceGeometry();
 const stitcher = new Stitcher({
   // Browser functions are wrapped so they are never called with the wrong `this`.
   decoder: new DataUrlDecoder(
     (url) => fetch(url),
     (blob) => createImageBitmap(blob),
   ),
-  cutter: new CanvasLimitCutter(
-    OFFSCREEN_CONFIG.maxPartSide,
-    OFFSCREEN_CONFIG.maxPartPixels,
+  sizer: new CutPictureSizer(
+    geometry,
+    new CanvasLimitCutter(
+      OFFSCREEN_CONFIG.maxPartSide,
+      OFFSCREEN_CONFIG.maxPartPixels,
+    ),
   ),
+  placing: geometry,
   surfaces: new OffscreenCanvasSurfaces(OffscreenCanvas),
-  geometry: new DeviceGeometry(),
-  urls: new BlobUrls(URL),
+  writer: new PngSheetWriter(new BlobUrls(URL)),
 });
 const router = new CommandRouter<OffscreenMessage>(
   TARGETS.offscreen,

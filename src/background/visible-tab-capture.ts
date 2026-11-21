@@ -1,5 +1,5 @@
 import { PNG_FORMAT } from "../shared/png";
-import type { Clock } from "./screenshot-namer";
+import type { Clock } from "./system-clock";
 
 export interface VisibleTabCapture {
   capture(windowId: number): Promise<string>;

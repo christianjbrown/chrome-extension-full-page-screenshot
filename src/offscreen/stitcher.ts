@@ -1,15 +1,14 @@
-import type { Geometry } from "./device-geometry";
-import type { ObjectUrls } from "./blob-urls";
+import type { Placing } from "./device-geometry";
 import type { ImageDecoder } from "./image-decoder";
-import type { Part, PartCutter } from "./part-layout";
+import type { PageSize, Picture, PictureSizer } from "./picture";
+import type { SheetWriter } from "./sheet-writer";
 import type { Rect } from "../shared/messages";
 import { isFiniteNumber, isPositiveNumber } from "../shared/numbers";
-import type { Bitmap, Surface, SurfaceFactory } from "./surfaces";
+import type { Bitmap, SurfaceFactory } from "./surfaces";
 
 const ERRORS = {
   size: "The page has an unusable size",
   scroll: "The page has an unusable scroll position",
-  width: "The capture has no width",
 } as const;
 
 // What the service worker asks of the offscreen document.
@@ -24,29 +23,17 @@ interface StitchCommands {
 
 export interface StitcherDependencies {
   decoder: ImageDecoder;
-  cutter: PartCutter;
+  sizer: PictureSizer;
+  placing: Placing;
   surfaces: SurfaceFactory;
-  geometry: Geometry;
-  urls: ObjectUrls;
-}
-
-interface Sheet extends Part {
-  surface?: Surface;
-  url?: string;
-}
-
-interface Picture {
-  width: number;
-  height: number;
-  scale: number;
-  sheets: Sheet[];
+  writer: SheetWriter;
 }
 
 // Paints the slices into the output a part at a time. Slices arrive top to
 // bottom, so each part is written out as soon as the slices move past it, and
 // at most two parts are ever held in memory.
 export class Stitcher implements StitchCommands {
-  private size = { width: 0, height: 0 };
+  private page: PageSize = { width: 0, height: 0 };
   private picture: Picture | undefined;
 
   constructor(private readonly deps: StitcherDependencies) {}
@@ -55,7 +42,7 @@ export class Stitcher implements StitchCommands {
     if (!isPositiveNumber(width) || !isPositiveNumber(height)) {
       return Promise.reject(new Error(ERRORS.size));
     }
-    this.size = { width, height };
+    this.page = { width, height };
     this.picture = undefined;
     return Promise.resolve();
   }
@@ -66,9 +53,9 @@ export class Stitcher implements StitchCommands {
     }
     const image = await this.deps.decoder.decode(dataUrl);
     try {
-      const picture = this.pictureFor(image);
+      this.picture ??= this.deps.sizer.size(image.width, this.page);
       for (const rect of rects) {
-        await this.paint(picture, image, rect, scroll);
+        await this.paint(this.picture, image, rect, scroll);
       }
     } finally {
       image.close();
@@ -79,7 +66,7 @@ export class Stitcher implements StitchCommands {
     const sheets = this.picture?.sheets ?? [];
     const urls: string[] = [];
     for (const sheet of sheets) {
-      await this.writeOut(sheet);
+      await this.deps.writer.writeOut(sheet);
       if (sheet.url !== undefined) {
         urls.push(sheet.url);
       }
@@ -88,31 +75,13 @@ export class Stitcher implements StitchCommands {
     return urls;
   }
 
-  private pictureFor(image: Bitmap): Picture {
-    if (this.picture === undefined) {
-      if (!isPositiveNumber(image.width)) {
-        throw new Error(ERRORS.width);
-      }
-      const { geometry } = this.deps;
-      const scale = geometry.scaleFor(image.width, this.size.width);
-      const height = geometry.heightOf(this.size.height, scale);
-      this.picture = {
-        width: image.width,
-        height,
-        scale,
-        sheets: this.deps.cutter.partsFor(image.width, height),
-      };
-    }
-    return this.picture;
-  }
-
   private async paint(
     picture: Picture,
     image: Bitmap,
     rect: Rect,
     scroll: number,
   ): Promise<void> {
-    const { source, top } = this.deps.geometry.place(
+    const { source, top } = this.deps.placing.place(
       rect,
       scroll,
       picture.scale,
@@ -120,7 +89,7 @@ export class Stitcher implements StitchCommands {
     );
     for (const sheet of picture.sheets) {
       if (sheet.top + sheet.height <= top) {
-        await this.writeOut(sheet);
+        await this.deps.writer.writeOut(sheet);
       } else if (sheet.top < top + source.height) {
         sheet.surface ??= this.deps.surfaces.create(
           picture.width,
@@ -128,13 +97,6 @@ export class Stitcher implements StitchCommands {
         );
         sheet.surface.draw(image, source, top - sheet.top);
       }
-    }
-  }
-
-  private async writeOut(sheet: Sheet): Promise<void> {
-    if (sheet.surface !== undefined) {
-      sheet.url = this.deps.urls.create(await sheet.surface.toPng());
-      delete sheet.surface;
     }
   }
 }

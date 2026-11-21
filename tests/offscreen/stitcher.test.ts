@@ -1,5 +1,7 @@
 import { DeviceGeometry } from "../../src/offscreen/device-geometry";
 import { CanvasLimitCutter } from "../../src/offscreen/part-layout";
+import { CutPictureSizer } from "../../src/offscreen/picture";
+import { PngSheetWriter } from "../../src/offscreen/sheet-writer";
 import { Stitcher } from "../../src/offscreen/stitcher";
 import { FakeSurface, fakeBitmap } from "./fakes";
 
@@ -14,12 +16,15 @@ function setUp(parts?: { top: number; height: number }[]) {
   ];
   let decoded = 0;
   const urls: Blob[] = [];
+  const geometry = new DeviceGeometry();
   const stitcher = new Stitcher({
     decoder: { decode: vi.fn(() => Promise.resolve(images[decoded++]!)) },
-    cutter:
+    sizer: new CutPictureSizer(
+      geometry,
       parts === undefined
         ? new CanvasLimitCutter(16384, 64 * 1024 * 1024)
         : { partsFor: () => parts },
+    ),
     surfaces: {
       create: vi.fn((width: number, height: number) => {
         const surface = new FakeSurface(width, height);
@@ -27,13 +32,13 @@ function setUp(parts?: { top: number; height: number }[]) {
         return surface;
       }),
     },
-    geometry: new DeviceGeometry(),
-    urls: {
+    placing: geometry,
+    writer: new PngSheetWriter({
       create: (blob: Blob) => {
         urls.push(blob);
         return `blob:${String(urls.length)}`;
       },
-    },
+    }),
   });
   return { stitcher, surfaces, images };
 }
@@ -135,14 +140,16 @@ describe("Stitcher", () => {
     const { stitcher, images } = setUp([]);
     const failing = new Stitcher({
       decoder: { decode: () => Promise.resolve(images[0]!) },
-      cutter: { partsFor: () => [{ top: 0, height: 10 }] },
+      sizer: new CutPictureSizer(new DeviceGeometry(), {
+        partsFor: () => [{ top: 0, height: 10 }],
+      }),
+      placing: new DeviceGeometry(),
       surfaces: {
         create: () => {
           throw new Error("too big");
         },
       },
-      geometry: new DeviceGeometry(),
-      urls: { create: () => "blob:x" },
+      writer: new PngSheetWriter({ create: () => "blob:x" }),
     });
     await stitcher.begin(1, 1);
     await failing.begin(1200, 10);

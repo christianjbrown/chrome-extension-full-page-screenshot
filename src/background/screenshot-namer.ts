@@ -1,8 +1,10 @@
 import { PNG_EXTENSION } from "../shared/png";
-
-export interface Clock {
-  now(): Date;
-}
+import {
+  SEPARATOR,
+  type TimeStamper,
+  type TitleSlugger,
+} from "./file-name-parts";
+import type { Clock } from "./system-clock";
 
 export interface NamedFile {
   url: string;
@@ -14,60 +16,28 @@ export interface ScreenshotNamer {
   name(title: string | undefined, urls: string[]): NamedFile[];
 }
 
-// Two digits for every part of the date and time, so names sort as text.
-const DIGITS = 2;
-const ZERO = "0";
-const SEPARATOR = "-";
 // The name for a page with no usable title.
 const UNTITLED = "screenshot";
 const PART = "-part-";
-// Splits accents off their letters, then joins what is left back up.
-const DECOMPOSED = "NFKD";
-const COMPOSED = "NFC";
-const LATIN_ACCENTS = /[\u0300-\u036f]/g;
-const NOT_A_WORD = /[^\p{L}\p{N}]+/u;
+// A page Chrome gives no title for is named as if it had none.
+const NO_TITLE = "";
 
-function pad(number: number): string {
-  return String(number).padStart(DIGITS, ZERO);
+export interface TimestampedNamerDependencies {
+  clock: Clock;
+  slugger: TitleSlugger;
+  stamper: TimeStamper;
 }
 
-function kebab(text: string, maxLength: number): string {
-  const words = text
-    .normalize(DECOMPOSED)
-    // Latin accents only (é to e); other scripts' marks, like Japanese ペ, recombine.
-    .replace(LATIN_ACCENTS, "")
-    .normalize(COMPOSED)
-    .toLowerCase()
-    .split(NOT_A_WORD)
-    .filter((word) => word !== "");
-  const name = words.join(SEPARATOR).slice(0, maxLength);
-  return name.endsWith(SEPARATOR) ? name.slice(0, -1) : name;
-}
-
-function stamp(date: Date): string {
-  return [
-    String(date.getFullYear()),
-    // Months count from 0.
-    pad(date.getMonth() + 1),
-    pad(date.getDate()),
-    pad(date.getHours()),
-    pad(date.getMinutes()),
-  ].join(SEPARATOR);
-}
-
-// "2026-10-30-14-05-my-cool-page", in the laptop's own time zone, so
-// screenshots sort by when they were taken.
+// "2026-10-30-14-05-my-cool-page", so screenshots sort by when they were taken.
 export class TimestampedNamer implements ScreenshotNamer {
-  constructor(
-    private readonly clock: Clock,
-    private readonly maxTitleLength: number,
-  ) {}
+  constructor(private readonly deps: TimestampedNamerDependencies) {}
 
   // One part is the plain name; a page cut into parts numbers each of them.
   name(title: string | undefined, urls: string[]): NamedFile[] {
+    const { clock, slugger, stamper } = this.deps;
     const name = [
-      stamp(this.clock.now()),
-      kebab(title ?? "", this.maxTitleLength) || UNTITLED,
+      stamper.stamp(clock.now()),
+      slugger.slug(title ?? NO_TITLE) || UNTITLED,
     ].join(SEPARATOR);
     return urls.map((url, index) => ({
       url,

@@ -14,9 +14,11 @@ import { SlicePlanner } from "./capture-plan";
 import { ChromeErrorExplainer } from "./chrome-errors";
 import { ClickScheme } from "./click-scheme";
 import { BACKGROUND_CONFIG } from "./config";
+import { DownloadCompletion } from "./download-completion";
 import { DownloadSaver } from "./download-saver";
 import { OFFSCREEN_DOCUMENT_PATH, PAGE_SCRIPT } from "./entries";
 import { ClaimedFilenames } from "./filename-claims";
+import { KebabSlugger, LocalTimeStamper } from "./file-name-parts";
 import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
@@ -96,8 +98,16 @@ const controller = new ScreenshotController({
     indicator,
   }),
   stitcher,
-  namer: new TimestampedNamer(clock, BACKGROUND_CONFIG.maxTitleLength),
-  saver: new DownloadSaver(chrome.downloads, filenames),
+  namer: new TimestampedNamer({
+    clock,
+    slugger: new KebabSlugger(BACKGROUND_CONFIG.maxTitleLength),
+    stamper: new LocalTimeStamper(),
+  }),
+  saver: new DownloadSaver(
+    chrome.downloads,
+    filenames,
+    new DownloadCompletion(chrome.downloads.onChanged),
+  ),
   indicator,
   errors: new ChromeErrorExplainer(),
 });
