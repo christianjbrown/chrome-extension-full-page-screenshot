@@ -81,10 +81,6 @@ export interface BackgroundMessage {
 
 export type Reply<T> = { ok: true; value: T } | { ok: false; error: string };
 
-export interface MessageSender<M> {
-  send(message: M): Promise<unknown>;
-}
-
 // Every runtime message reaches every context, so each one picks out its own.
 export function isMessageFor(
   message: unknown,

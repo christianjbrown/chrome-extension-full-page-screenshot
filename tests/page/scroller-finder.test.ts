@@ -1,9 +1,7 @@
 import { ScrollerFinder } from "../../src/page/scroller-finder";
-import {
-  DomScrollerFactory,
-  ElementScroller,
-  WindowScroller,
-} from "../../src/page/scrollers";
+import { DomScrollerFactory } from "../../src/page/dom-scroller-factory";
+import { ElementScroller } from "../../src/page/element-scroller";
+import { WindowScroller } from "../../src/page/window-scroller";
 import { FakeElements, fakeElement, fakeWindow } from "./fakes";
 
 function find(rootHeight: number, elements: FakeElements) {

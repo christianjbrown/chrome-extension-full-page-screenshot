@@ -2,8 +2,8 @@ import type { Mock } from "vitest";
 import type {
   StitchLifecycle,
   StitchSession,
-} from "../../src/background/offscreen-stitcher";
-import type { PageDriver } from "../../src/background/page-client";
+} from "../../src/background/stitch-session";
+import type { PageDriver } from "../../src/background/page-driver";
 import type { ScreenshotIndicator } from "../../src/background/screenshot-indicator";
 
 export type Mocked<T> = {

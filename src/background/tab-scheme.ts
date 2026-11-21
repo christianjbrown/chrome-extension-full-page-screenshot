@@ -1,5 +1,5 @@
 import { schemeFor, type ColourScheme } from "../shared/colour-scheme";
-import type { SchemeReader } from "./click-scheme";
+import type { SchemeReader } from "./scheme-ports";
 
 export interface ScriptRunner {
   executeScript(injection: {

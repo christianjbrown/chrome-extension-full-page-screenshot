@@ -1,21 +1,17 @@
-import type { CaptureTarget } from "./capturable-tabs";
-import type { CapturePlanner } from "./capture-plan";
-import type { StitchSession } from "./offscreen-stitcher";
-import type { PageDriver } from "./page-client";
-import type { ScreenshotIndicator } from "./screenshot-indicator";
+import type { CaptureTarget } from "./capture-target";
+import type { CapturePlanner } from "./capture-planner";
+import type { StitchSession } from "./stitch-session";
+import type { PageDriver } from "./page-driver";
+import type { ProgressIndicator } from "./screenshot-indicator";
+import type { Shooter } from "./shooter";
 import type { VisibleTabCapture } from "./visible-tab-capture";
-
-export interface Shooter {
-  // Blob URLs of the finished PNGs, top to bottom.
-  shoot(target: CaptureTarget): Promise<string[]>;
-}
 
 export interface FullPageShooterDependencies {
   page: PageDriver;
   planner: CapturePlanner;
   capture: VisibleTabCapture;
   stitcher: StitchSession;
-  indicator: ScreenshotIndicator;
+  indicator: ProgressIndicator;
 }
 
 // Scrolls the page a frame at a time, captures what is on screen, and hands

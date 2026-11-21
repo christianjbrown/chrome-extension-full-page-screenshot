@@ -2,19 +2,22 @@
 // the service worker. It is injected again on every click, which the
 // reinstaller keeps from piling up listeners.
 import { CommandRouter } from "../shared/command-router";
-import { OwnContextFilter } from "../shared/message-filter";
+import { OwnContextFilter } from "../shared/own-context-filter";
 import { pageGuards } from "../shared/message-guards";
 import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
-import { SettledResponder } from "../shared/replies";
+import { SettledResponder } from "../shared/settled-responder";
+import { CaptureScrollStyles } from "./capture-scroll-styles";
 import { PAGE_CONFIG } from "./config";
-import { VisibleImageWaiter } from "./image-waiter";
-import { FREEZE_RULES, LayoutFreezer } from "./layout-freezer";
+import { VisibleImageWaiter } from "./visible-image-waiter";
+import { FREEZE_RULES } from "./freeze-rules";
+import { LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
-import { DomElements, type PageElement } from "./page-elements";
+import { DomElements } from "./dom-elements";
+import type { PageElement } from "./page-elements";
 import { Reinstaller, type Installed } from "./reinstaller";
 import { ScrollerFinder } from "./scroller-finder";
-import { DomScrollerFactory } from "./scrollers";
-import { FrameSettler } from "./settler";
+import { DomScrollerFactory } from "./dom-scroller-factory";
+import { FrameSettler } from "./frame-settler";
 import { StyleLedger } from "./style-ledger";
 
 type Listener = (
@@ -58,7 +61,7 @@ const controller = new PageController({
     elements,
     new DomScrollerFactory(window, root),
   ),
-  ledger,
+  steadier: new CaptureScrollStyles(ledger, root),
   freezer: new LayoutFreezer(elements, ledger, FREEZE_RULES),
   settler: new FrameSettler(
     (callback) => requestAnimationFrame(callback),
@@ -71,7 +74,7 @@ const controller = new PageController({
     (callback, ms) => setTimeout(callback, ms),
     PAGE_CONFIG.imagePatienceMs,
   ),
-  root,
+  styles: ledger,
   viewport: window,
 });
 const router = new CommandRouter<PageMessage>(

@@ -3,8 +3,8 @@ import type {
   PageElement,
   PageElements,
 } from "../../src/page/page-elements";
-import type { InlineStyle } from "../../src/page/style-ledger";
-import type { WindowLike } from "../../src/page/scrollers";
+import type { InlineStyle } from "../../src/page/inline-styles";
+import type { WindowLike } from "../../src/page/window-scroller";
 import type { Mock } from "vitest";
 
 // An inline style that behaves like CSSStyleDeclaration for the parts used.

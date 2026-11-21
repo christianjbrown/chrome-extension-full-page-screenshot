@@ -1,3 +1,5 @@
+import type { DownloadWaiter } from "./download-waiter";
+
 interface DownloadDelta {
   id: number;
   state?: { current?: string };
@@ -9,11 +11,6 @@ type DeltaListener = (delta: DownloadDelta) => void;
 export interface DownloadChanges {
   addListener(listener: DeltaListener): void;
   removeListener(listener: DeltaListener): void;
-}
-
-// Waits until Chrome has finished writing a download.
-export interface DownloadWaiter {
-  finished(id: number): Promise<void>;
 }
 
 // The states of a download that mean Chrome has stopped writing it.

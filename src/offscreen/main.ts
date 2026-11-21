@@ -5,7 +5,7 @@
 // service worker has no matchMedia.
 import { DARK_SCHEME_QUERY } from "../shared/colour-scheme";
 import { CommandRouter } from "../shared/command-router";
-import { OwnContextFilter } from "../shared/message-filter";
+import { OwnContextFilter } from "../shared/own-context-filter";
 import { offscreenGuards } from "../shared/message-guards";
 import {
   TARGETS,
@@ -13,18 +13,19 @@ import {
   type OffscreenMessage,
   type Reply,
 } from "../shared/messages";
-import { SettledResponder } from "../shared/replies";
+import { SettledResponder } from "../shared/settled-responder";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { BlobUrls } from "./blob-urls";
+import { MAX_PART_PIXELS, MAX_PART_SIDE } from "./canvas-limits";
 import { OFFSCREEN_CONFIG } from "./config";
-import { DataUrlDecoder } from "./image-decoder";
+import { DataUrlDecoder } from "./data-url-decoder";
 import { DeviceGeometry } from "./device-geometry";
-import { CanvasLimitCutter } from "./part-layout";
-import { CutPictureSizer } from "./picture";
+import { CanvasLimitCutter } from "./canvas-limit-cutter";
+import { CutPictureSizer } from "./cut-picture-sizer";
 import { SchemeReporter } from "./scheme-reporter";
-import { PngSheetWriter } from "./sheet-writer";
+import { PngSheetWriter } from "./png-sheet-writer";
 import { Stitcher } from "./stitcher";
-import { OffscreenCanvasSurfaces } from "./surfaces";
+import { OffscreenCanvasSurfaces } from "./canvas-surfaces";
 
 const geometry = new DeviceGeometry();
 const stitcher = new Stitcher({
@@ -35,10 +36,7 @@ const stitcher = new Stitcher({
   ),
   sizer: new CutPictureSizer(
     geometry,
-    new CanvasLimitCutter(
-      OFFSCREEN_CONFIG.maxPartSide,
-      OFFSCREEN_CONFIG.maxPartPixels,
-    ),
+    new CanvasLimitCutter(MAX_PART_SIDE, MAX_PART_PIXELS),
   ),
   placing: geometry,
   surfaces: new OffscreenCanvasSurfaces(OffscreenCanvas),

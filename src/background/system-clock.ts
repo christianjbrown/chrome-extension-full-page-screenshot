@@ -1,6 +1,4 @@
-export interface Clock {
-  now(): Date;
-}
+import type { Clock } from "./clock";
 
 export class SystemClock implements Clock {
   now(): Date {

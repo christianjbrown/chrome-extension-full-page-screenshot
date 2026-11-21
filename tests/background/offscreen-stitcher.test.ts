@@ -1,4 +1,4 @@
-import { ReplyUnwrapper } from "../../src/shared/replies";
+import { ReplyUnwrapper } from "../../src/shared/reply-unwrapper";
 import { OffscreenStitcher } from "../../src/background/offscreen-stitcher";
 
 function setUp(reply: unknown = { ok: true, value: ["blob:1"] }) {
@@ -8,7 +8,7 @@ function setUp(reply: unknown = { ok: true, value: ["blob:1"] }) {
       calls.push("open");
       return Promise.resolve();
     }),
-    close: vi.fn().mockResolvedValue(undefined),
+    renew: vi.fn().mockResolvedValue(undefined),
   };
   const messages = {
     send: vi.fn((message: { type: string }) => {
@@ -80,11 +80,11 @@ describe("OffscreenStitcher", () => {
     );
   });
 
-  it("closes the document, so that its blob URLs die", async () => {
+  it("renews the document, so that its blob URLs die", async () => {
     const { document, stitcher } = setUp();
 
     await stitcher.close();
 
-    expect(document.close).toHaveBeenCalledTimes(1);
+    expect(document.renew).toHaveBeenCalledTimes(1);
   });
 });

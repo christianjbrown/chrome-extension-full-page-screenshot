@@ -1,8 +1,6 @@
-import {
-  KebabSlugger,
-  LocalTimeStamper,
-} from "../../src/background/file-name-parts";
-import { TimestampedNamer } from "../../src/background/screenshot-namer";
+import { KebabSlugger } from "../../src/background/kebab-slugger";
+import { LocalTimeStamper } from "../../src/background/local-time-stamper";
+import { TimestampedNamer } from "../../src/background/timestamped-namer";
 import { SystemClock } from "../../src/background/system-clock";
 
 const at = (date: Date) =>

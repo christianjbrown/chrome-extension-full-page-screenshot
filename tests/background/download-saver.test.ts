@@ -1,6 +1,6 @@
 import { DownloadCompletion } from "../../src/background/download-completion";
 import { DownloadSaver } from "../../src/background/download-saver";
-import { ClaimedFilenames } from "../../src/background/filename-claims";
+import { ClaimedFilenames } from "../../src/background/claimed-filenames";
 import { FilenameListening } from "../../src/background/filename-listening";
 
 type Listener = (delta: {

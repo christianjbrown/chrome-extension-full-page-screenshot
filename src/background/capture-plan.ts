@@ -1,4 +1,5 @@
 import type { PageLayout, Rect } from "../shared/messages";
+import type { CapturePlan, CapturePlanner } from "./capture-planner";
 
 // How far a capture may go. The config says why each one is there.
 export interface PlanLimits {
@@ -8,23 +9,6 @@ export interface PlanLimits {
 }
 
 const TOO_LONG = "This page is too long to capture";
-
-interface PlannedSlice {
-  scroll: number;
-  // The parts of the viewport this slice contributes. Each belongs in the
-  // page at its own position plus where the page has scrolled to.
-  rects: Rect[];
-}
-
-export interface CapturePlan {
-  width: number;
-  height: number;
-  slices: PlannedSlice[];
-}
-
-export interface CapturePlanner {
-  plan(layout: PageLayout): CapturePlan;
-}
 
 // A frame scrolled entirely off screen has nothing to show, so it is not scrolled.
 function deepestScroll(layout: PageLayout, maxPageHeight: number): number {

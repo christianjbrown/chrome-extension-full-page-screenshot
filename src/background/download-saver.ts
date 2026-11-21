@@ -1,5 +1,5 @@
 import { CONFLICT_ACTION } from "./conflict-action";
-import type { DownloadWaiter } from "./download-completion";
+import type { DownloadWaiter } from "./download-waiter";
 import type { FileSaver } from "./file-saver";
 import type { FilenameClaims } from "./filename-claims";
 

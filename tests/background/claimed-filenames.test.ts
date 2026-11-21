@@ -1,4 +1,4 @@
-import { ClaimedFilenames } from "../../src/background/filename-claims";
+import { ClaimedFilenames } from "../../src/background/claimed-filenames";
 
 const NO_OPINION = { filename: "", conflictAction: "uniquify" };
 

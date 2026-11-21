@@ -1,33 +1,22 @@
 import {
   OFFSCREEN_TYPES,
   TARGETS,
-  type MessageSender,
   type OffscreenMessage,
   type Rect,
 } from "../shared/messages";
-import type { HiddenDocument } from "./offscreen-page";
+import type { MessageSender } from "../shared/message-sender";
+import type { RenewableDocument } from "./hidden-document";
+import type { StitchLifecycle, StitchSession } from "./stitch-session";
 import type { ReplyReader } from "../shared/replies";
 
 // Who failed to answer, in an error.
 const STITCHER = "The stitcher";
 
-// The service worker's handle on the document that stitches the slices.
-export interface StitchSession {
-  begin(width: number, height: number): Promise<void>;
-  add(dataUrl: string, rects: Rect[], scroll: number): Promise<void>;
-  finish(): Promise<string[]>;
-}
-
-// Whoever starts a capture also ends it, whether or not it got as far as stitching.
-export interface StitchLifecycle {
-  close(): Promise<void>;
-}
-
-// The blob URLs the document hands out die with it, so it is closed once the
+// The blob URLs the document hands out die with it, so it is renewed once the
 // files are saved. A capture uses the document if it is already open.
 export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   constructor(
-    private readonly document: HiddenDocument,
+    private readonly document: RenewableDocument,
     private readonly messages: MessageSender<OffscreenMessage>,
     private readonly replies: ReplyReader,
   ) {}
@@ -60,7 +49,7 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   }
 
   close(): Promise<void> {
-    return this.document.close();
+    return this.document.renew();
   }
 
   private async ask<T>(message: OffscreenMessage): Promise<T> {

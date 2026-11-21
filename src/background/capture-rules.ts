@@ -1,10 +1,5 @@
+import type { CaptureRule } from "./capture-rule";
 import { REFUSALS } from "./refusals";
-
-// One reason Chrome will not let an extension capture a tab.
-export interface CaptureRule {
-  blocks(url: string): Promise<boolean>;
-  readonly reason: string;
-}
 
 export interface FileSchemeAccess {
   isAllowedFileSchemeAccess(): Promise<boolean>;

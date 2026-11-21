@@ -1,29 +1,14 @@
 import { IMPORTANT } from "./css";
+import type { StyleOverrides, StyleRestoration, Styled } from "./inline-styles";
 
-export interface InlineStyle {
-  getPropertyValue(property: string): string;
-  getPropertyPriority(property: string): string;
-  setProperty(property: string, value: string, priority: string): void;
-  removeProperty(property: string): string;
-}
-
-export interface Styled {
-  style: InlineStyle;
-}
+// What getPropertyValue gives for a property with no inline value.
+const NOT_SET = "";
 
 interface Original {
   target: Styled;
   property: string;
   value: string;
   priority: string;
-}
-
-export interface StyleOverrides {
-  override(target: Styled, property: string, value: string): void;
-}
-
-export interface StyleRestoration {
-  restore(): void;
 }
 
 // Overrides inline styles for the capture and remembers exactly what was there
@@ -51,7 +36,7 @@ export class StyleLedger implements StyleOverrides, StyleRestoration {
     this.originals
       .toReversed()
       .forEach(({ target, property, value, priority }) => {
-        if (value === "") {
+        if (value === NOT_SET) {
           target.style.removeProperty(property);
         } else {
           target.style.setProperty(property, value, priority);

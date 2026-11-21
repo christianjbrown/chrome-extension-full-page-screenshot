@@ -1,6 +1,6 @@
 // The service worker: builds the object graph and connects it to Chrome's events.
 import { CommandRouter } from "../shared/command-router";
-import { OwnContextFilter } from "../shared/message-filter";
+import { OwnContextFilter } from "../shared/own-context-filter";
 import { backgroundGuards } from "../shared/message-guards";
 import {
   TARGETS,
@@ -8,27 +8,28 @@ import {
   type OffscreenMessage,
   type Reply,
 } from "../shared/messages";
-import { ReplyUnwrapper, SettledResponder } from "../shared/replies";
+import { ReplyUnwrapper } from "../shared/reply-unwrapper";
+import { SettledResponder } from "../shared/settled-responder";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { CapturableTabs } from "./capturable-tabs";
 import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
-import { ChromeErrorExplainer, TRANSLATIONS } from "./chrome-errors";
+import { CAPTURE_SPACING_MS } from "./capture-quota";
+import { TRANSLATIONS } from "./chrome-error-translations";
+import { ChromeErrorExplainer } from "./chrome-errors";
 import { ClickScheme } from "./click-scheme";
 import { BACKGROUND_CONFIG } from "./config";
 import { DownloadCompletion } from "./download-completion";
 import { DownloadSaver } from "./download-saver";
 import { OFFSCREEN_DOCUMENT_PATH, PAGE_SCRIPT } from "./entries";
-import { ClaimedFilenames } from "./filename-claims";
+import { ClaimedFilenames } from "./claimed-filenames";
 import { FilenameListening } from "./filename-listening";
-import { KebabSlugger, LocalTimeStamper } from "./file-name-parts";
 import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
 import { PageClient } from "./page-client";
-import { FinitePageValidator } from "./page-validator";
-import { ReopeningDocument } from "./reopening-document";
-import { TimestampedNamer } from "./screenshot-namer";
+import { FinitePageValidator } from "./finite-page-validator";
+import { RenewingDocument } from "./renewing-document";
 import { SCHEME_POLICY, UNKNOWN_SCHEME } from "./scheme-state";
 import { SchemeStore } from "./scheme-store";
 import { ScreenshotController } from "./screenshot-controller";
@@ -37,7 +38,11 @@ import { TabScheme } from "./tab-scheme";
 import { ToolbarIcon } from "./toolbar-icon";
 import { ToolbarIndicator } from "./toolbar-indicator";
 import { ToolbarScheme } from "./toolbar-scheme";
-import { ThrottledCapture, TimerSleeper } from "./visible-tab-capture";
+import { ThrottledCapture } from "./throttled-capture";
+import { TimerSleeper } from "./timer-sleeper";
+import { TimestampedNamer } from "./timestamped-namer";
+import { KebabSlugger } from "./kebab-slugger";
+import { LocalTimeStamper } from "./local-time-stamper";
 
 const clock = new SystemClock();
 const replies = new ReplyUnwrapper();
@@ -71,10 +76,10 @@ const offscreenPage = new OffscreenPage(
   chrome.runtime,
   OFFSCREEN_DOCUMENT_PATH,
 );
-// A capture closes the document so that its blob URLs die, and the watcher has
-// to carry on afterwards.
+// A capture renews the document so that its blob URLs die, and the watcher
+// carries on in the new one.
 const stitcher = new OffscreenStitcher(
-  new ReopeningDocument(offscreenPage),
+  new RenewingDocument(offscreenPage),
   new RuntimeMessenger<OffscreenMessage>(chrome.runtime),
   replies,
 );
@@ -107,7 +112,7 @@ const controller = new ScreenshotController({
       chrome.tabs,
       clock,
       new TimerSleeper((callback, ms) => setTimeout(callback, ms)),
-      BACKGROUND_CONFIG.captureSpacingMs,
+      CAPTURE_SPACING_MS,
     ),
     stitcher,
     indicator,

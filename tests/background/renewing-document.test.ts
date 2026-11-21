@@ -1,4 +1,4 @@
-import { ReopeningDocument } from "../../src/background/reopening-document";
+import { RenewingDocument } from "../../src/background/renewing-document";
 
 function setUp() {
   const calls: string[] = [];
@@ -12,10 +12,10 @@ function setUp() {
       return Promise.resolve();
     }),
   };
-  return { calls, inner, document: new ReopeningDocument(inner) };
+  return { calls, inner, document: new RenewingDocument(inner) };
 }
 
-describe("ReopeningDocument", () => {
+describe("RenewingDocument", () => {
   it("opens the document", async () => {
     const { calls, document } = setUp();
 
@@ -24,19 +24,19 @@ describe("ReopeningDocument", () => {
     expect(calls).toEqual(["open"]);
   });
 
-  it("opens the document again straight after closing it", async () => {
+  it("renews the document by closing it and opening it straight back up", async () => {
     const { calls, document } = setUp();
 
-    await document.close();
+    await document.renew();
 
     expect(calls).toEqual(["close", "open"]);
   });
 
-  it("opens the document again even when closing it fails", async () => {
+  it("opens the document again even when closing the old one fails", async () => {
     const { calls, inner, document } = setUp();
     inner.close.mockRejectedValueOnce(new Error("Already gone"));
 
-    await expect(document.close()).rejects.toThrow("Already gone");
+    await expect(document.renew()).rejects.toThrow("Already gone");
 
     expect(calls).toEqual(["open"]);
   });

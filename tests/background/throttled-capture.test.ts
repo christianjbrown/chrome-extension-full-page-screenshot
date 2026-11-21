@@ -1,7 +1,5 @@
-import {
-  ThrottledCapture,
-  TimerSleeper,
-} from "../../src/background/visible-tab-capture";
+import { ThrottledCapture } from "../../src/background/throttled-capture";
+import { TimerSleeper } from "../../src/background/timer-sleeper";
 
 const CAPTURE_SPACING_MS = 600;
 

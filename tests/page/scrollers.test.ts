@@ -1,4 +1,5 @@
-import { ElementScroller, WindowScroller } from "../../src/page/scrollers";
+import { ElementScroller } from "../../src/page/element-scroller";
+import { WindowScroller } from "../../src/page/window-scroller";
 import { fakeElement, fakeWindow } from "./fakes";
 
 describe("WindowScroller", () => {

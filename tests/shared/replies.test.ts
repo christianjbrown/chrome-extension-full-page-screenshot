@@ -1,6 +1,7 @@
 import { CommandRouter } from "../../src/shared/command-router";
-import { OwnContextFilter } from "../../src/shared/message-filter";
-import { ReplyUnwrapper, SettledResponder } from "../../src/shared/replies";
+import { OwnContextFilter } from "../../src/shared/own-context-filter";
+import { ReplyUnwrapper } from "../../src/shared/reply-unwrapper";
+import { SettledResponder } from "../../src/shared/settled-responder";
 
 const replyWhenDone = <T>(
   work: Promise<T>,

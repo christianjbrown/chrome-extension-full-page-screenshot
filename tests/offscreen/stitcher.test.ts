@@ -1,7 +1,7 @@
 import { DeviceGeometry } from "../../src/offscreen/device-geometry";
-import { CanvasLimitCutter } from "../../src/offscreen/part-layout";
-import { CutPictureSizer } from "../../src/offscreen/picture";
-import { PngSheetWriter } from "../../src/offscreen/sheet-writer";
+import { CanvasLimitCutter } from "../../src/offscreen/canvas-limit-cutter";
+import { CutPictureSizer } from "../../src/offscreen/cut-picture-sizer";
+import { PngSheetWriter } from "../../src/offscreen/png-sheet-writer";
 import { Stitcher } from "../../src/offscreen/stitcher";
 import { FakeSurface, fakeBitmap } from "./fakes";
 

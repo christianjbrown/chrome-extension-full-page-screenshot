@@ -1,4 +1,4 @@
-import { FrameSettler } from "../../src/page/settler";
+import { FrameSettler } from "../../src/page/frame-settler";
 
 describe("FrameSettler", () => {
   it("waits two frames and then the delay", async () => {
