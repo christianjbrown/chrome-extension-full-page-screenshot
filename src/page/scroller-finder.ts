@@ -1,7 +1,7 @@
 import { SCROLLING_OVERFLOW } from "./css";
 import type { PageElement, PageElements, Tall } from "./page-elements";
 import type { Scroller, ScrollerFactory, ScrollerSource } from "./scroller";
-import type { Viewport } from "./viewport";
+import type { ViewHeight } from "./viewport";
 
 const area = (element: PageElement): number =>
   element.clientWidth * element.clientHeight;
@@ -14,7 +14,7 @@ const byAreaDescending = (a: PageElement, b: PageElement): number =>
 // element that scrolls its own content, as web apps with a fixed shell do.
 export class ScrollerFinder implements ScrollerSource {
   constructor(
-    private readonly window: Viewport,
+    private readonly window: ViewHeight,
     private readonly root: Tall,
     private readonly elements: PageElements,
     private readonly scrollers: ScrollerFactory,
