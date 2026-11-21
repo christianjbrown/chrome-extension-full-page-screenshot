@@ -1,8 +1,5 @@
-import type { ColourScheme } from "../shared/colour-scheme";
+import { schemeFor, type ColourScheme } from "../shared/colour-scheme";
 import type { BackgroundMessage } from "../shared/messages";
-
-export const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
-export const SCHEME_CHECK_MS = 1000;
 
 // The part of a MediaQueryList this needs.
 export interface SchemeQuery {
@@ -28,19 +25,20 @@ export class SchemeReporter {
     private readonly dark: SchemeQuery,
     private readonly channel: MessageChannel,
     private readonly repeat: Repeat,
+    private readonly everyMs: number,
   ) {}
 
   start(): void {
     this.check();
     this.repeat(() => {
       this.check();
-    }, SCHEME_CHECK_MS);
+    }, this.everyMs);
   }
 
   // Nobody waits for an answer: the service worker repaints the button. A
   // report that did not arrive is forgotten, so the next look sends it again.
   private check(): void {
-    const scheme: ColourScheme = this.dark.matches ? "dark" : "light";
+    const scheme = schemeFor(this.dark.matches);
     if (scheme === this.reported) {
       return;
     }

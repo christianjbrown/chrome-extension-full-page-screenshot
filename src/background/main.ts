@@ -21,6 +21,7 @@ import { PageClient } from "./page-client";
 import { FinitePageValidator } from "./page-validator";
 import { ReopeningDocument } from "./reopening-document";
 import { TimestampedNamer } from "./screenshot-namer";
+import { SCHEME_POLICY, UNKNOWN_SCHEME } from "./scheme-state";
 import { SchemeStore } from "./scheme-store";
 import { ScreenshotController } from "./screenshot-controller";
 import { SystemClock } from "./system-clock";
@@ -36,8 +37,9 @@ const indicator = new ToolbarIndicator(chrome.action);
 // The device's scheme comes from the offscreen document and Chrome's own from a
 // clicked tab, so the icon is worked out from both.
 const toolbarScheme = new ToolbarScheme(
-  new SchemeStore(chrome.storage.local),
+  new SchemeStore(chrome.storage.local, UNKNOWN_SCHEME),
   new ToolbarIcon(chrome.action),
+  SCHEME_POLICY,
 );
 const clickScheme = new ClickScheme(
   new TabScheme(chrome.scripting),

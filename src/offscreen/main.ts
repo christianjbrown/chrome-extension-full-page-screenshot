@@ -3,14 +3,16 @@
 // service worker cannot make a blob URL and a full page PNG is far too big to
 // download as a data URL. And it watches Chrome's colour scheme, because a
 // service worker has no matchMedia.
+import { DARK_SCHEME_QUERY } from "../shared/colour-scheme";
 import { CommandRouter } from "../shared/command-router";
 import { offscreenGuards } from "../shared/message-guards";
 import type { OffscreenMessage, Reply } from "../shared/messages";
 import { BlobUrls } from "./blob-urls";
+import { OFFSCREEN_CONFIG } from "./config";
 import { DataUrlDecoder } from "./image-decoder";
 import { DeviceGeometry } from "./device-geometry";
 import { CanvasLimitCutter } from "./part-layout";
-import { DARK_SCHEME_QUERY, SchemeReporter } from "./scheme-reporter";
+import { SchemeReporter } from "./scheme-reporter";
 import { Stitcher } from "./stitcher";
 import { OffscreenCanvasSurfaces } from "./surfaces";
 
@@ -48,4 +50,5 @@ new SchemeReporter(
   (work, everyMs) => {
     window.setInterval(work, everyMs);
   },
+  OFFSCREEN_CONFIG.schemeCheckMs,
 ).start();

@@ -1,4 +1,4 @@
-import type { ColourScheme } from "../shared/colour-scheme";
+import { schemeFor, type ColourScheme } from "../shared/colour-scheme";
 
 export interface ScriptRunner {
   executeScript(injection: {
@@ -8,7 +8,8 @@ export interface ScriptRunner {
 }
 
 // Runs inside the tab, so it can use nothing from this file: Chrome sends the
-// function's own text across, and the query has to be written out in it.
+// function's own text across, and the query has to be written out in it. A
+// test pins it to DARK_SCHEME_QUERY.
 export function tabPrefersDark(): boolean {
   return matchMedia("(prefers-color-scheme: dark)").matches;
 }
@@ -28,7 +29,7 @@ export class TabScheme {
       if (typeof frame?.result !== "boolean") {
         return undefined;
       }
-      return frame.result ? "dark" : "light";
+      return schemeFor(frame.result);
     } catch {
       return undefined;
     }

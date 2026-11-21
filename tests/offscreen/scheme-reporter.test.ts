@@ -1,7 +1,6 @@
-import {
-  SCHEME_CHECK_MS,
-  SchemeReporter,
-} from "../../src/offscreen/scheme-reporter";
+import { SchemeReporter } from "../../src/offscreen/scheme-reporter";
+
+const EVERY_MS = 250;
 
 function start(dark: boolean, sendMessage = vi.fn().mockResolvedValue(1)) {
   const query = { matches: dark };
@@ -9,7 +8,7 @@ function start(dark: boolean, sendMessage = vi.fn().mockResolvedValue(1)) {
   const repeat = vi.fn((work: () => void) => {
     ticks.push(work);
   });
-  new SchemeReporter(query, { sendMessage }, repeat).start();
+  new SchemeReporter(query, { sendMessage }, repeat, EVERY_MS).start();
   return {
     query,
     sendMessage,
@@ -41,12 +40,12 @@ describe("SchemeReporter", () => {
     expect(sendMessage).toHaveBeenCalledExactlyOnceWith(report("light"));
   });
 
-  it("looks again every second", () => {
+  it("looks again as often as it is told", () => {
     const { repeat } = start(true);
 
     expect(repeat).toHaveBeenCalledExactlyOnceWith(
       expect.any(Function),
-      SCHEME_CHECK_MS,
+      EVERY_MS,
     );
   });
 

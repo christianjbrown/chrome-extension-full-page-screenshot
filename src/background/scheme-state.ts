@@ -1,4 +1,8 @@
-import { COLOUR_SCHEMES, type ColourScheme } from "../shared/colour-scheme";
+import {
+  COLOUR_SCHEMES,
+  DARK,
+  type ColourScheme,
+} from "../shared/colour-scheme";
 
 // What is known about the colour of Chrome's toolbar.
 //
@@ -13,7 +17,7 @@ export interface SchemeState {
 }
 
 // Matches the icon the manifest starts with.
-export const UNKNOWN_SCHEME: SchemeState = { device: "dark", chrome: null };
+export const UNKNOWN_SCHEME: SchemeState = { device: DARK, chrome: null };
 
 export const isColourScheme = (value: unknown): value is ColourScheme =>
   (COLOUR_SCHEMES as readonly unknown[]).includes(value);
@@ -36,3 +40,16 @@ export function afterTab(state: SchemeState, tab: ColourScheme): SchemeState {
   }
   return { ...state, chrome: state.chrome === tab ? tab : null };
 }
+
+// How each report moves the state on, and which scheme the toolbar is in.
+export interface SchemePolicy {
+  afterDevice(state: SchemeState, device: ColourScheme): SchemeState;
+  afterTab(state: SchemeState, tab: ColourScheme): SchemeState;
+  toolbarScheme(state: SchemeState): ColourScheme;
+}
+
+export const SCHEME_POLICY: SchemePolicy = {
+  afterDevice,
+  afterTab,
+  toolbarScheme,
+};
