@@ -1,4 +1,5 @@
 // The service worker: builds the object graph and connects it to Chrome's events.
+import { DARK_SCHEME_QUERY } from "../shared/colour-scheme";
 import { CommandRouter } from "../shared/command-router";
 import { OwnContextFilter } from "../shared/own-context-filter";
 import { everyCommandOnce } from "../shared/every-command-once";
@@ -42,6 +43,7 @@ import { SCHEME_POLICY, UNKNOWN_SCHEME } from "./scheme-state";
 import { SchemeStore } from "./scheme-store";
 import { ScreenshotController } from "./screenshot-controller";
 import { SystemClock } from "./system-clock";
+import { tabPrefersDark } from "./tab-probe";
 import { TabScheme } from "./tab-scheme";
 import { ToolbarIcon } from "./toolbar-icon";
 import { ToolbarIndicator } from "./toolbar-indicator";
@@ -52,7 +54,7 @@ import { TimestampedNamer } from "./timestamped-namer";
 import { KebabSlugger } from "./kebab-slugger";
 import { LocalTimeStamper } from "./local-time-stamper";
 
-const clock = new SystemClock();
+const clock = new SystemClock(Date);
 const replies = new ReplyUnwrapper();
 // Chrome only asks this extension to name downloads while one of its own is
 // waiting for a name: each claim holds the listener and naming it releases it.
@@ -74,7 +76,10 @@ const toolbarScheme = new ToolbarScheme(
   SCHEME_POLICY,
 );
 const clickScheme = new QuietClick(
-  new ClickScheme(new TabScheme(chrome.scripting), toolbarScheme),
+  new ClickScheme(
+    new TabScheme(chrome.scripting, tabPrefersDark, DARK_SCHEME_QUERY),
+    toolbarScheme,
+  ),
 );
 // One offscreen document does two jobs: it stitches, and it watches the colour
 // scheme. It is open for as long as Chrome runs so that a change of scheme

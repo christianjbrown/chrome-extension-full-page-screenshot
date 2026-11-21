@@ -74,7 +74,7 @@ describe("SystemClock", () => {
     vi.useFakeTimers();
     vi.setSystemTime(afternoon);
 
-    expect(new SystemClock().now()).toEqual(afternoon);
+    expect(new SystemClock(Date).now()).toEqual(afternoon);
 
     vi.useRealTimers();
   });
