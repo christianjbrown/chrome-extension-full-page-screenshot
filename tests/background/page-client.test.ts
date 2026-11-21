@@ -1,5 +1,5 @@
 import { ReplyUnwrapper } from "../../src/shared/replies";
-import { FinitePageValidator } from "../../src/background/page-validator";
+import { FinitePageValidator } from "../../src/background/finite-page-validator";
 import { PageClient } from "../../src/background/page-client";
 
 function setUp(reply: unknown = { ok: true, value: 7 }) {

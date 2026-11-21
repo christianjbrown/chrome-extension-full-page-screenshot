@@ -1,8 +1,8 @@
-import type { BrowserTab, CaptureTargets } from "./capturable-tabs";
-import type { ErrorExplainer } from "./chrome-errors";
+import type { BrowserTab, CaptureTargets } from "./capture-target";
+import type { ErrorExplainer } from "./error-explainer";
 import type { FileSaver } from "./file-saver";
-import type { Shooter } from "./full-page-shooter";
-import type { StitchLifecycle } from "./offscreen-stitcher";
+import type { Shooter } from "./shooter";
+import type { StitchLifecycle } from "./stitch-session";
 import type { ScreenshotIndicator } from "./screenshot-indicator";
 import type { ScreenshotNamer } from "./screenshot-namer";
 

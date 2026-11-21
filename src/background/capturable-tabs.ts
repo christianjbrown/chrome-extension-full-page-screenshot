@@ -1,21 +1,9 @@
-import type { CaptureRule } from "./capture-rules";
-
-export interface BrowserTab {
-  id?: number | undefined;
-  windowId?: number | undefined;
-  title?: string | undefined;
-  url?: string | undefined;
-}
-
-export interface CaptureTarget {
-  tabId: number;
-  windowId: number;
-  title: string | undefined;
-}
-
-export interface CaptureTargets {
-  targetFor(tab: BrowserTab): Promise<CaptureTarget>;
-}
+import type { CaptureRule } from "./capture-rule";
+import type {
+  BrowserTab,
+  CaptureTarget,
+  CaptureTargets,
+} from "./capture-target";
 
 const NO_TAB = "This tab cannot be captured";
 // A tab Chrome gives no address for is checked as if it had none.

@@ -1,15 +1,11 @@
 import type { ColourScheme } from "../shared/colour-scheme";
-import type { TabSchemeSink } from "./click-scheme";
-import type { SchemePolicy, SchemeState } from "./scheme-state";
-
-export interface SchemeMemory {
-  load(): Promise<SchemeState>;
-  save(state: SchemeState): Promise<void>;
-}
-
-export interface SchemeIcon {
-  show(scheme: ColourScheme): Promise<void>;
-}
+import type {
+  SchemeIcon,
+  SchemeMemory,
+  SchemePolicy,
+  SchemeState,
+  TabSchemeSink,
+} from "./scheme-ports";
 
 // Works out which colour scheme the toolbar is in from the two things that
 // report one, and keeps the button's icon in step.

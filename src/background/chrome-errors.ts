@@ -1,9 +1,6 @@
 import { errorMessage } from "../shared/error-message";
+import type { ErrorExplainer } from "./error-explainer";
 import { REFUSALS } from "./refusals";
-
-export interface ErrorExplainer {
-  explain(error: unknown): string;
-}
 
 export interface Translation {
   pattern: RegExp;

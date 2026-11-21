@@ -1,14 +1,10 @@
+import type { Listening } from "./listening";
+
 // The two halves of a Chrome event that this needs, which
 // chrome.downloads.onDeterminingFilename satisfies.
 export interface ListenerEvent<Listener> {
   addListener(listener: Listener): void;
   removeListener(listener: Listener): void;
-}
-
-// Keeps a listener registered for as long as anything is holding it.
-export interface Listening {
-  hold(): void;
-  release(): void;
 }
 
 const NOT_HELD = 0;

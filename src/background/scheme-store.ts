@@ -1,6 +1,5 @@
 import { isColourScheme } from "../shared/colour-scheme";
-import type { SchemeState } from "./scheme-state";
-import type { SchemeMemory } from "./toolbar-scheme";
+import type { SchemeMemory, SchemeState } from "./scheme-ports";
 
 export interface StorageArea {
   get(key: string): Promise<Record<string, unknown>>;

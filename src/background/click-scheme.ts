@@ -1,12 +1,4 @@
-import type { ColourScheme } from "../shared/colour-scheme";
-
-export interface SchemeReader {
-  read(tabId: number): Promise<ColourScheme | undefined>;
-}
-
-export interface TabSchemeSink {
-  tabShows(scheme: ColourScheme): Promise<void>;
-}
+import type { SchemeReader, TabSchemeSink } from "./scheme-ports";
 
 // A click on the button lets the extension into that tab, which is the one
 // chance to see the colour scheme Chrome itself is in.
