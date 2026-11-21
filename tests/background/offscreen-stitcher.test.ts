@@ -65,6 +65,17 @@ describe("OffscreenStitcher", () => {
     });
   });
 
+  it.each([undefined, "blob:1", [7], ["blob:1", null]])(
+    "refuses %j as the stitcher's files",
+    async (value) => {
+      const { stitcher } = setUp({ ok: true, value });
+
+      await expect(stitcher.finish()).rejects.toThrow(
+        "The stitcher reported unusable files",
+      );
+    },
+  );
+
   it("throws the stitcher's error", async () => {
     const { stitcher } = setUp({ ok: false, error: "too big" });
 
