@@ -8,12 +8,33 @@ type Listener = (
   reply: (reply: unknown) => void,
 ) => boolean;
 
+// Stand-ins for the browser's own classes, which the script checks against.
+class FakeDomElement {
+  readonly kind = "element";
+}
+class FakeImageElement {
+  readonly kind = "image";
+}
+
+const asInstanceOf = <T extends object>(
+  kind: { prototype: object },
+  value: T,
+): T => Object.setPrototypeOf(value, kind.prototype) as T;
+
 function installPage() {
   const listeners: Listener[] = [];
   const window = fakeWindow(800);
   window.scrollY = 300;
-  const root = fakeElement({ scrollHeight: 2400 });
-  const header = fakeElement({ position: "fixed" });
+  const root = asInstanceOf(
+    FakeDomElement,
+    fakeElement({ scrollHeight: 2400 }),
+  );
+  const header = asInstanceOf(
+    FakeDomElement,
+    fakeElement({ position: "fixed" }),
+  );
+  vi.stubGlobal("Element", FakeDomElement);
+  vi.stubGlobal("HTMLImageElement", FakeImageElement);
   vi.stubGlobal("chrome", {
     runtime: {
       id: "ext",
@@ -25,7 +46,7 @@ function installPage() {
       },
     },
   });
-  const picture = {
+  const picture = asInstanceOf(FakeImageElement, {
     complete: false,
     getBoundingClientRect: () => ({
       top: 10,
@@ -34,11 +55,12 @@ function installPage() {
       right: 300,
     }),
     decode: vi.fn(() => Promise.resolve()),
-  };
+  });
   vi.stubGlobal("document", {
     documentElement: root,
-    querySelectorAll: () => [root, header],
-    images: [picture],
+    // Text and an element with no inline style are not elements to look at.
+    querySelectorAll: () => [root, header, "text", new FakeDomElement()],
+    images: [picture, "not an image"],
   });
   vi.stubGlobal("window", window);
   vi.stubGlobal(

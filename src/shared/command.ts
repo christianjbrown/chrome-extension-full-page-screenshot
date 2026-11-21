@@ -5,7 +5,7 @@ export interface Message {
 }
 
 // The message of one type.
-export type MessageOf<M extends Message, T extends M["type"]> = Extract<
+type MessageOf<M extends Message, T extends M["type"]> = Extract<
   M,
   { type: T }
 >;

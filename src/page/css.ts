@@ -13,6 +13,9 @@ export const VALUE = {
   none: "none",
   relative: "relative",
   invisible: "0",
+  // What an element has when no rule positions it or lets it scroll.
+  static: "static",
+  visible: "visible",
 } as const;
 
 // Computed position values that take an element out of the page's flow.

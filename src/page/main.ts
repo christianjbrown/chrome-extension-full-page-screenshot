@@ -2,6 +2,7 @@
 // the service worker. It is injected again on every click, which the
 // reinstaller keeps from piling up listeners.
 import { CommandRouter } from "../shared/command-router";
+import type { Sender } from "../shared/message-filter";
 import { OwnContextFilter } from "../shared/own-context-filter";
 import { everyCommandOnce } from "../shared/every-command-once";
 import type { PageMessage, Reply } from "../shared/messages";
@@ -14,7 +15,8 @@ import { FREEZE_RULES } from "./freeze-rules";
 import { LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
 import { DomElements } from "./dom-elements";
-import type { PageElement } from "./page-elements";
+import { DomImages } from "./dom-images";
+import { InstanceGuard, StyledGuard } from "./guards";
 import { PrepareCommand } from "./prepare-command";
 import { Reinstaller, type Installed } from "./reinstaller";
 import { RestoreCommand } from "./restore-command";
@@ -26,7 +28,7 @@ import { StyleLedger } from "./style-ledger";
 
 type Listener = (
   message: unknown,
-  sender: unknown,
+  sender: Sender,
   reply: (reply: Reply<unknown>) => void,
 ) => boolean;
 
@@ -52,10 +54,12 @@ const reinstaller = new Reinstaller<Listener>(
   },
 );
 
-const root = document.documentElement as unknown as PageElement;
+const root = document.documentElement;
 // Browser functions are wrapped so they are never called with the wrong `this`.
-const elements = new DomElements(document, (element) =>
-  getComputedStyle(element as unknown as Element),
+const elements = new DomElements(
+  document,
+  new StyledGuard(new InstanceGuard(Element)),
+  (element) => getComputedStyle(element),
 );
 const ledger = new StyleLedger();
 const controller = new PageController({
@@ -73,7 +77,7 @@ const controller = new PageController({
     PAGE_CONFIG.settleMs,
   ),
   images: new VisibleImageWaiter(
-    document,
+    new DomImages(document, new InstanceGuard(HTMLImageElement)),
     window,
     (callback, ms) => setTimeout(callback, ms),
     PAGE_CONFIG.imagePatienceMs,
@@ -91,6 +95,6 @@ const router = new CommandRouter<PageMessage>(
   new SettledResponder(),
 );
 const listener: Listener = (message, sender, reply) =>
-  router.route(message, sender as { id?: string }, reply);
+  router.route(message, sender, reply);
 
 reinstaller.install({ listener, controller });

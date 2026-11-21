@@ -1,7 +1,5 @@
-import {
-  VisibleImageWaiter,
-  type PageImage,
-} from "../../src/page/visible-image-waiter";
+import type { PageImage } from "../../src/page/page-images";
+import { VisibleImageWaiter } from "../../src/page/visible-image-waiter";
 
 function image(
   overrides: Partial<{
@@ -30,7 +28,7 @@ function setUp(images: PageImage[]) {
   return {
     timer,
     waiter: new VisibleImageWaiter(
-      { images },
+      { all: () => images },
       { innerWidth: 1000, innerHeight: 800 },
       timer,
       2000,
