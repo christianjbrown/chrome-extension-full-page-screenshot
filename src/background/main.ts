@@ -36,7 +36,6 @@ import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
 import { PageClient } from "./page-client";
-import { REFUSALS } from "./refusals";
 import { QuietClick } from "./quiet-click";
 import { FinitePageValidator } from "./finite-page-validator";
 import { RenewingDocument } from "./renewing-document";
@@ -48,7 +47,12 @@ import { tabPrefersDark } from "./tab-probe";
 import { TabScheme } from "./tab-scheme";
 import { ToolbarIcon } from "./toolbar-icon";
 import { ToolbarIndicator } from "./toolbar-indicator";
-import { BADGES, COLOURS, TITLES } from "./toolbar-looks";
+import {
+  CAPTURING_LOOK,
+  FAILED_LOOK,
+  IDLE_LOOK,
+  SAVING_LOOK,
+} from "./toolbar-looks";
 import { FailedStage, ProgressStage, SteadyStage } from "./toolbar-stages";
 import { ToolbarScheme } from "./toolbar-scheme";
 import type { ScreenshotStages } from "./screenshot-indicator";
@@ -57,6 +61,17 @@ import { TimerSleeper } from "./timer-sleeper";
 import { TimestampedNamer } from "./timestamped-namer";
 import { KebabSlugger } from "./kebab-slugger";
 import { LocalTimeStamper } from "./local-time-stamper";
+
+// What the person who clicked is told when Chrome will not let a tab be
+// captured. The rules that check first and the explainer that translates
+// Chrome's own errors afterwards say the same things.
+const OWN_PAGES_REFUSAL =
+  "Chrome does not let extensions capture its own pages";
+const WEB_STORE_REFUSAL =
+  "Chrome does not let extensions capture the Web Store";
+const LOCAL_FILES_REFUSAL =
+  "Turn on Allow access to file URLs for this extension to capture local files";
+const LEFT_TAB_REFUSAL = "Stay on the tab until the screenshot is done";
 
 const clock = new SystemClock(Date);
 const replies = new ReplyUnwrapper();
@@ -72,22 +87,10 @@ const filenames: ClaimedFilenames = new ClaimedFilenames(
 );
 const indicator = new ToolbarIndicator(chrome.action);
 const stages = {
-  idle: new SteadyStage({
-    badge: BADGES.none,
-    colour: COLOURS.idle,
-    title: TITLES.idle,
-  }),
-  progress: new ProgressStage(COLOURS.busy, TITLES.capturing),
-  saving: new SteadyStage({
-    badge: BADGES.saving,
-    colour: COLOURS.busy,
-    title: TITLES.saving,
-  }),
-  failed: new FailedStage({
-    badge: BADGES.failed,
-    colour: COLOURS.failed,
-    title: TITLES.failedBecause,
-  }),
+  idle: new SteadyStage(IDLE_LOOK),
+  progress: new ProgressStage(CAPTURING_LOOK),
+  saving: new SteadyStage(SAVING_LOOK),
+  failed: new FailedStage(FAILED_LOOK),
 } satisfies ScreenshotStages;
 // The device's scheme comes from the offscreen document and Chrome's own from a
 // clicked tab, so the icon is worked out from both.
@@ -126,9 +129,9 @@ const router = new CommandRouter<BackgroundMessage>(
 );
 const controller = new ScreenshotController({
   targets: new CapturableTabs([
-    new BrowserPageRule(REFUSALS.ownPages),
-    new WebStoreRule(REFUSALS.webStore),
-    new LocalFileRule(chrome.extension, REFUSALS.localFiles),
+    new BrowserPageRule(OWN_PAGES_REFUSAL),
+    new WebStoreRule(WEB_STORE_REFUSAL),
+    new LocalFileRule(chrome.extension, LOCAL_FILES_REFUSAL),
   ]),
   shooter: new FullPageShooter({
     page: new PageClient({
@@ -167,10 +170,10 @@ const controller = new ScreenshotController({
   indicator,
   stages,
   errors: new ChromeErrorExplainer([
-    new OwnPageRefusal(REFUSALS.ownPages),
-    new WebStoreRefusal(REFUSALS.webStore),
-    new LocalFileRefusal(REFUSALS.localFiles),
-    new LeftTabRefusal(REFUSALS.leftTab),
+    new OwnPageRefusal(OWN_PAGES_REFUSAL),
+    new WebStoreRefusal(WEB_STORE_REFUSAL),
+    new LocalFileRefusal(LOCAL_FILES_REFUSAL),
+    new LeftTabRefusal(LEFT_TAB_REFUSAL),
   ]),
 });
 

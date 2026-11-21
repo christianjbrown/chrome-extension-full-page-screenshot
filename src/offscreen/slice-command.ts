@@ -1,7 +1,8 @@
 import type { Command } from "../shared/command";
 import type { Fields } from "../shared/fields";
 import { isRect } from "../shared/message-fields";
-import { isAddressed, type OffscreenMessage } from "../shared/messages";
+import { isAddressed } from "../shared/addressing";
+import type { OffscreenMessage } from "../shared/messages";
 import { isFiniteNumber } from "../shared/numbers";
 import { SLICE, type SliceMessage } from "../shared/slice-message";
 import { TARGETS } from "../shared/targets";

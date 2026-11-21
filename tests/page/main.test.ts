@@ -21,13 +21,13 @@ const asInstanceOf = <T extends object>(
   value: T,
 ): T => Object.setPrototypeOf(value, kind.prototype) as T;
 
-function installPage() {
+function installPage(rootHeight = 2400, inner: object[] = []) {
   const listeners: Listener[] = [];
   const window = fakeWindow(800);
   window.scrollY = 300;
   const root = asInstanceOf(
     FakeDomElement,
-    fakeElement({ scrollHeight: 2400 }),
+    fakeElement({ scrollHeight: rootHeight }),
   );
   const header = asInstanceOf(
     FakeDomElement,
@@ -59,7 +59,13 @@ function installPage() {
   vi.stubGlobal("document", {
     documentElement: root,
     // Text and an element with no inline style are not elements to look at.
-    querySelectorAll: () => [root, header, "text", new FakeDomElement()],
+    querySelectorAll: () => [
+      root,
+      header,
+      "text",
+      new FakeDomElement(),
+      ...inner,
+    ],
     images: [picture, "not an image"],
   });
   vi.stubGlobal("window", window);
@@ -131,6 +137,33 @@ describe("page script", () => {
     ).resolves.toEqual({ ok: true, value: undefined });
     expect(window.scrollY).toBe(300);
     expect(root.style.values.size).toBe(0);
+  });
+
+  it("scrolls an inner pane when the page itself does not scroll", async () => {
+    const pane = asInstanceOf(
+      FakeDomElement,
+      fakeElement({
+        scrollHeight: 3000,
+        clientHeight: 600,
+        clientWidth: 900,
+        overflowY: "auto",
+      }),
+    );
+    const { listeners } = installPage(800, [pane]);
+    await load();
+
+    await expect(
+      send(listeners, { target: "page", type: "prepare" }),
+    ).resolves.toMatchObject({ ok: true, value: { scrollHeight: 3000 } });
+    await expect(
+      send(listeners, {
+        target: "page",
+        type: "scroll",
+        y: 600,
+        hideFixed: false,
+      }),
+    ).resolves.toEqual({ ok: true, value: 600 });
+    expect(pane.scrollTop).toBe(600);
   });
 
   it("ignores messages for other contexts", async () => {

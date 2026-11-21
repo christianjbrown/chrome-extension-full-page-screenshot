@@ -1,6 +1,7 @@
 import type { Command } from "../shared/command";
 import { FINISH, type FinishMessage } from "../shared/finish-message";
-import { isAddressed, type OffscreenMessage } from "../shared/messages";
+import { isAddressed } from "../shared/addressing";
+import type { OffscreenMessage } from "../shared/messages";
 import { TARGETS } from "../shared/targets";
 import type { StitchFinisher } from "./stitch-commands";
 

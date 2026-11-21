@@ -1,6 +1,6 @@
 import type { Fields } from "./fields";
 import type { MessageFilter, Sender } from "./message-filter";
-import { isMessageFor } from "./messages";
+import { isMessageFor } from "./addressing";
 
 // Every runtime message reaches every context, so each takes only those meant
 // for it, and only from the extension's own contexts.

@@ -1,6 +1,7 @@
 import { isColourScheme } from "../shared/colour-scheme";
 import type { Command } from "../shared/command";
-import { isAddressed, type BackgroundMessage } from "../shared/messages";
+import { isAddressed } from "../shared/addressing";
+import type { BackgroundMessage } from "../shared/messages";
 import { SCHEME, type SchemeMessage } from "../shared/scheme-message";
 import { TARGETS } from "../shared/targets";
 import type { DeviceSchemeSink } from "./scheme-ports";

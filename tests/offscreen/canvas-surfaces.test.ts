@@ -1,6 +1,8 @@
 import {
+  CanvasSurface,
   OffscreenCanvasSurfaces,
   type Canvas2d,
+  type CanvasConstructor,
 } from "../../src/offscreen/canvas-surfaces";
 import type { Bitmap } from "../../src/offscreen/surfaces";
 import { fakeBitmap } from "./fakes";
@@ -23,13 +25,19 @@ function canvasClass(context: Canvas2d<Bitmap> | null) {
   return { Canvas, made, blob };
 }
 
+const surfaces = (Canvas: CanvasConstructor<Bitmap>) =>
+  new OffscreenCanvasSurfaces(
+    Canvas,
+    (canvas, context) => new CanvasSurface(canvas, context),
+  );
+
 describe("OffscreenCanvasSurfaces", () => {
   it("copies a box of the image into the same columns", () => {
     const context = { drawImage: vi.fn() };
     const { Canvas } = canvasClass(context);
     const image = fakeBitmap(2400, 1600);
 
-    new OffscreenCanvasSurfaces(Canvas)
+    surfaces(Canvas)
       .create(2400, 5000)
       .draw(image, { x: 500, y: 120, width: 1800, height: 1480 }, 3000);
 
@@ -48,7 +56,7 @@ describe("OffscreenCanvasSurfaces", () => {
 
   it("encodes a PNG and then gives the canvas memory back", async () => {
     const { Canvas, made, blob } = canvasClass({ drawImage: vi.fn() });
-    const surface = new OffscreenCanvasSurfaces(Canvas).create(2400, 5000);
+    const surface = surfaces(Canvas).create(2400, 5000);
 
     await expect(surface.toPng()).resolves.toBe(blob);
     expect(
@@ -62,7 +70,7 @@ describe("OffscreenCanvasSurfaces", () => {
   it("says so when Chrome cannot make a canvas that size", () => {
     const { Canvas } = canvasClass(null);
 
-    expect(() => new OffscreenCanvasSurfaces(Canvas).create(10, 20)).toThrow(
+    expect(() => surfaces(Canvas).create(10, 20)).toThrow(
       "Chrome could not make a 10 by 20 image",
     );
   });

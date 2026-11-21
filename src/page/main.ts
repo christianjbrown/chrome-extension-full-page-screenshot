@@ -17,13 +17,21 @@ import { PageController } from "./page-controller";
 import { DomElements } from "./dom-elements";
 import { DomImages } from "./dom-images";
 import { GlobalSlot } from "./global-slot";
-import { InstalledGuard, InstanceGuard, StyledGuard } from "./guards";
+import {
+  FunctionGuard,
+  InstalledGuard,
+  InstanceGuard,
+  RestorableGuard,
+  StyledGuard,
+} from "./guards";
 import { PrepareCommand } from "./prepare-command";
 import { Reinstaller } from "./reinstaller";
 import { RestoreCommand } from "./restore-command";
 import { ScrollCommand } from "./scroll-command";
 import { ScrollerFinder } from "./scroller-finder";
 import { DomScrollerFactory } from "./dom-scroller-factory";
+import { ElementScroller } from "./element-scroller";
+import { WindowScroller } from "./window-scroller";
 import { FrameSettler } from "./frame-settler";
 import { StyleLedger } from "./style-ledger";
 
@@ -35,8 +43,17 @@ type Listener = (
 
 // Where each copy of the script leaves its install for the next one.
 const KEY = "__fullPageScreenshot";
+// Chrome passes a message listener the message, its sender and a reply.
+const LISTENER_ARITY = 3;
 const reinstaller = new Reinstaller<Listener>(
-  new GlobalSlot(globalThis, KEY, new InstalledGuard<Listener>()),
+  new GlobalSlot(
+    globalThis,
+    KEY,
+    new InstalledGuard(
+      new FunctionGuard<Listener>(LISTENER_ARITY),
+      new RestorableGuard(),
+    ),
+  ),
   chrome.runtime.onMessage,
 );
 
@@ -53,7 +70,10 @@ const controller = new PageController({
     window,
     root,
     elements,
-    new DomScrollerFactory(window, root),
+    new DomScrollerFactory(
+      () => new WindowScroller(window, root),
+      (element) => new ElementScroller(element, window),
+    ),
   ),
   steadier: new CaptureScrollStyles(ledger, root),
   freezer: new LayoutFreezer(elements, ledger, [

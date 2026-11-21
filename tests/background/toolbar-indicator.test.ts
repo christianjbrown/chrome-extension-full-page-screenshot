@@ -39,7 +39,11 @@ describe("SteadyStage", () => {
 
 describe("ProgressStage", () => {
   it("shows how far the capture has got as a percentage", () => {
-    expect(new ProgressStage("#2563eb", "Capturing").lookFor(0.426)).toEqual({
+    expect(
+      new ProgressStage({ colour: "#2563eb", title: "Capturing" }).lookFor(
+        0.426,
+      ),
+    ).toEqual({
       badge: "43%",
       colour: "#2563eb",
       title: "Capturing",

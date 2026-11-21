@@ -28,7 +28,7 @@ import { CutPictureSizer } from "./cut-picture-sizer";
 import { SchemeReporter } from "./scheme-reporter";
 import { PngSheetWriter } from "./png-sheet-writer";
 import { Stitcher } from "./stitcher";
-import { OffscreenCanvasSurfaces } from "./canvas-surfaces";
+import { CanvasSurface, OffscreenCanvasSurfaces } from "./canvas-surfaces";
 
 const geometry = new DeviceGeometry();
 const stitcher = new Stitcher({
@@ -42,7 +42,10 @@ const stitcher = new Stitcher({
     new CanvasLimitCutter(MAX_PART_SIDE, MAX_PART_PIXELS),
   ),
   placing: geometry,
-  surfaces: new OffscreenCanvasSurfaces(OffscreenCanvas),
+  surfaces: new OffscreenCanvasSurfaces(
+    OffscreenCanvas,
+    (canvas, context) => new CanvasSurface(canvas, context),
+  ),
   writer: new PngSheetWriter(new BlobUrls(URL)),
 });
 const router = new CommandRouter<OffscreenMessage>(
