@@ -3,8 +3,8 @@ import {
   BACKGROUND_TYPES,
   TARGETS,
   type BackgroundMessage,
-  type MessageSender,
 } from "../shared/messages";
+import type { MessageSender } from "../shared/message-sender";
 
 // The part of a MediaQueryList this needs.
 export interface SchemeQuery {

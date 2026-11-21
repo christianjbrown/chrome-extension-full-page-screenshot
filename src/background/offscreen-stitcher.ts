@@ -1,10 +1,10 @@
 import {
   OFFSCREEN_TYPES,
   TARGETS,
-  type MessageSender,
   type OffscreenMessage,
   type Rect,
 } from "../shared/messages";
+import type { MessageSender } from "../shared/message-sender";
 import type { RenewableDocument } from "./hidden-document";
 import type { StitchLifecycle, StitchSession } from "./stitch-session";
 import type { ReplyReader } from "../shared/replies";

@@ -5,7 +5,7 @@
 // service worker has no matchMedia.
 import { DARK_SCHEME_QUERY } from "../shared/colour-scheme";
 import { CommandRouter } from "../shared/command-router";
-import { OwnContextFilter } from "../shared/message-filter";
+import { OwnContextFilter } from "../shared/own-context-filter";
 import { offscreenGuards } from "../shared/message-guards";
 import {
   TARGETS,
@@ -13,7 +13,7 @@ import {
   type OffscreenMessage,
   type Reply,
 } from "../shared/messages";
-import { SettledResponder } from "../shared/replies";
+import { SettledResponder } from "../shared/settled-responder";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { BlobUrls } from "./blob-urls";
 import { MAX_PART_PIXELS, MAX_PART_SIDE } from "./canvas-limits";

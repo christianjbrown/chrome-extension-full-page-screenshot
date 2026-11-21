@@ -2,10 +2,10 @@
 // the service worker. It is injected again on every click, which the
 // reinstaller keeps from piling up listeners.
 import { CommandRouter } from "../shared/command-router";
-import { OwnContextFilter } from "../shared/message-filter";
+import { OwnContextFilter } from "../shared/own-context-filter";
 import { pageGuards } from "../shared/message-guards";
 import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
-import { SettledResponder } from "../shared/replies";
+import { SettledResponder } from "../shared/settled-responder";
 import { CaptureScrollStyles } from "./capture-scroll-styles";
 import { PAGE_CONFIG } from "./config";
 import { VisibleImageWaiter } from "./visible-image-waiter";

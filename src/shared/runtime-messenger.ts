@@ -1,4 +1,4 @@
-import type { MessageSender } from "./messages";
+import type { MessageSender } from "./message-sender";
 
 // The part of chrome.runtime that sends a message.
 export interface RuntimeChannel {

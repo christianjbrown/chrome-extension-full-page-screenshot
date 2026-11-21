@@ -1,4 +1,4 @@
-import { ReplyUnwrapper } from "../../src/shared/replies";
+import { ReplyUnwrapper } from "../../src/shared/reply-unwrapper";
 import { FinitePageValidator } from "../../src/background/finite-page-validator";
 import { PageClient } from "../../src/background/page-client";
 

@@ -1,4 +1,4 @@
-import { ReplyUnwrapper } from "../../src/shared/replies";
+import { ReplyUnwrapper } from "../../src/shared/reply-unwrapper";
 import { OffscreenStitcher } from "../../src/background/offscreen-stitcher";
 
 function setUp(reply: unknown = { ok: true, value: ["blob:1"] }) {

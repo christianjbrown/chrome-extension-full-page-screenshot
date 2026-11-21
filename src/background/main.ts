@@ -1,6 +1,6 @@
 // The service worker: builds the object graph and connects it to Chrome's events.
 import { CommandRouter } from "../shared/command-router";
-import { OwnContextFilter } from "../shared/message-filter";
+import { OwnContextFilter } from "../shared/own-context-filter";
 import { backgroundGuards } from "../shared/message-guards";
 import {
   TARGETS,
@@ -8,7 +8,8 @@ import {
   type OffscreenMessage,
   type Reply,
 } from "../shared/messages";
-import { ReplyUnwrapper, SettledResponder } from "../shared/replies";
+import { ReplyUnwrapper } from "../shared/reply-unwrapper";
+import { SettledResponder } from "../shared/settled-responder";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { CapturableTabs } from "./capturable-tabs";
 import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
