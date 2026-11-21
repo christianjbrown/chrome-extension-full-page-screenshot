@@ -11,7 +11,10 @@ function find(rootHeight: number, elements: FakeElements) {
     window,
     root,
     elements,
-    new DomScrollerFactory(window, root),
+    new DomScrollerFactory(
+      () => new WindowScroller(window, root),
+      (element) => new ElementScroller(element, window),
+    ),
   ).find();
 }
 

@@ -30,6 +30,8 @@ import { RestoreCommand } from "./restore-command";
 import { ScrollCommand } from "./scroll-command";
 import { ScrollerFinder } from "./scroller-finder";
 import { DomScrollerFactory } from "./dom-scroller-factory";
+import { ElementScroller } from "./element-scroller";
+import { WindowScroller } from "./window-scroller";
 import { FrameSettler } from "./frame-settler";
 import { StyleLedger } from "./style-ledger";
 
@@ -68,7 +70,10 @@ const controller = new PageController({
     window,
     root,
     elements,
-    new DomScrollerFactory(window, root),
+    new DomScrollerFactory(
+      () => new WindowScroller(window, root),
+      (element) => new ElementScroller(element, window),
+    ),
   ),
   steadier: new CaptureScrollStyles(ledger, root),
   freezer: new LayoutFreezer(elements, ledger, [
