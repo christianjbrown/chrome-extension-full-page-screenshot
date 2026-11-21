@@ -35,6 +35,7 @@ import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
 import { PageClient } from "./page-client";
+import { QuietClick } from "./quiet-click";
 import { FinitePageValidator } from "./finite-page-validator";
 import { RenewingDocument } from "./renewing-document";
 import { SCHEME_POLICY, UNKNOWN_SCHEME } from "./scheme-state";
@@ -72,9 +73,8 @@ const toolbarScheme = new ToolbarScheme(
   new SerialQueue(),
   SCHEME_POLICY,
 );
-const clickScheme = new ClickScheme(
-  new TabScheme(chrome.scripting),
-  toolbarScheme,
+const clickScheme = new QuietClick(
+  new ClickScheme(new TabScheme(chrome.scripting), toolbarScheme),
 );
 // One offscreen document does two jobs: it stitches, and it watches the colour
 // scheme. It is open for as long as Chrome runs so that a change of scheme
@@ -147,9 +147,7 @@ const controller = new ScreenshotController({
 
 chrome.action.onClicked.addListener((tab) => {
   void controller.take(tab);
-  // Beside the capture, never part of it: a failed read must not stop a
-  // screenshot, and the capture does not wait for it.
-  void clickScheme.clicked(tab).catch(() => undefined);
+  void clickScheme.clicked(tab);
 });
 chrome.runtime.onMessage.addListener(
   (message: unknown, sender, sendResponse: (reply: Reply<unknown>) => void) =>
