@@ -1,4 +1,4 @@
-import type { PageLayout } from "../shared/messages";
+import type { PageLayout } from "../shared/page-layout";
 
 // The service worker's handle on the script it injects into the page.
 export interface PageDriver {

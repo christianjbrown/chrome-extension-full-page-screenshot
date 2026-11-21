@@ -1,13 +1,14 @@
 // The service worker: builds the object graph and connects it to Chrome's events.
+import { DARK_SCHEME_QUERY } from "../shared/colour-scheme";
 import { CommandRouter } from "../shared/command-router";
 import { OwnContextFilter } from "../shared/own-context-filter";
 import { everyCommandOnce } from "../shared/every-command-once";
-import {
-  TARGETS,
-  type BackgroundMessage,
-  type OffscreenMessage,
-  type Reply,
+import type {
+  BackgroundMessage,
+  OffscreenMessage,
+  Reply,
 } from "../shared/messages";
+import { TARGETS } from "../shared/targets";
 import { ReplyUnwrapper } from "../shared/reply-unwrapper";
 import { SettledResponder } from "../shared/settled-responder";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
@@ -16,8 +17,13 @@ import { CapturableTabs } from "./capturable-tabs";
 import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
 import { CAPTURE_SPACING_MS } from "./capture-quota";
-import { TRANSLATIONS } from "./chrome-error-translations";
 import { ChromeErrorExplainer } from "./chrome-errors";
+import {
+  LeftTabRefusal,
+  LocalFileRefusal,
+  OwnPageRefusal,
+  WebStoreRefusal,
+} from "./chrome-refusals";
 import { ClickScheme } from "./click-scheme";
 import { BACKGROUND_CONFIG } from "./config";
 import { DeviceSchemeCommand } from "./device-scheme-command";
@@ -30,23 +36,29 @@ import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
 import { PageClient } from "./page-client";
+import { REFUSALS } from "./refusals";
+import { QuietClick } from "./quiet-click";
 import { FinitePageValidator } from "./finite-page-validator";
 import { RenewingDocument } from "./renewing-document";
 import { SCHEME_POLICY, UNKNOWN_SCHEME } from "./scheme-state";
 import { SchemeStore } from "./scheme-store";
 import { ScreenshotController } from "./screenshot-controller";
 import { SystemClock } from "./system-clock";
+import { tabPrefersDark } from "./tab-probe";
 import { TabScheme } from "./tab-scheme";
 import { ToolbarIcon } from "./toolbar-icon";
 import { ToolbarIndicator } from "./toolbar-indicator";
+import { BADGES, COLOURS, TITLES } from "./toolbar-looks";
+import { FailedStage, ProgressStage, SteadyStage } from "./toolbar-stages";
 import { ToolbarScheme } from "./toolbar-scheme";
+import type { ScreenshotStages } from "./screenshot-indicator";
 import { ThrottledCapture } from "./throttled-capture";
 import { TimerSleeper } from "./timer-sleeper";
 import { TimestampedNamer } from "./timestamped-namer";
 import { KebabSlugger } from "./kebab-slugger";
 import { LocalTimeStamper } from "./local-time-stamper";
 
-const clock = new SystemClock();
+const clock = new SystemClock(Date);
 const replies = new ReplyUnwrapper();
 // Chrome only asks this extension to name downloads while one of its own is
 // waiting for a name: each claim holds the listener and naming it releases it.
@@ -59,6 +71,24 @@ const filenames: ClaimedFilenames = new ClaimedFilenames(
   ),
 );
 const indicator = new ToolbarIndicator(chrome.action);
+const stages = {
+  idle: new SteadyStage({
+    badge: BADGES.none,
+    colour: COLOURS.idle,
+    title: TITLES.idle,
+  }),
+  progress: new ProgressStage(COLOURS.busy, TITLES.capturing),
+  saving: new SteadyStage({
+    badge: BADGES.saving,
+    colour: COLOURS.busy,
+    title: TITLES.saving,
+  }),
+  failed: new FailedStage({
+    badge: BADGES.failed,
+    colour: COLOURS.failed,
+    title: TITLES.failedBecause,
+  }),
+} satisfies ScreenshotStages;
 // The device's scheme comes from the offscreen document and Chrome's own from a
 // clicked tab, so the icon is worked out from both.
 const toolbarScheme = new ToolbarScheme(
@@ -67,9 +97,11 @@ const toolbarScheme = new ToolbarScheme(
   new SerialQueue(),
   SCHEME_POLICY,
 );
-const clickScheme = new ClickScheme(
-  new TabScheme(chrome.scripting),
-  toolbarScheme,
+const clickScheme = new QuietClick(
+  new ClickScheme(
+    new TabScheme(chrome.scripting, tabPrefersDark, DARK_SCHEME_QUERY),
+    toolbarScheme,
+  ),
 );
 // One offscreen document does two jobs: it stitches, and it watches the colour
 // scheme. It is open for as long as Chrome runs so that a change of scheme
@@ -94,9 +126,9 @@ const router = new CommandRouter<BackgroundMessage>(
 );
 const controller = new ScreenshotController({
   targets: new CapturableTabs([
-    new BrowserPageRule(),
-    new WebStoreRule(),
-    new LocalFileRule(chrome.extension),
+    new BrowserPageRule(REFUSALS.ownPages),
+    new WebStoreRule(REFUSALS.webStore),
+    new LocalFileRule(chrome.extension, REFUSALS.localFiles),
   ]),
   shooter: new FullPageShooter({
     page: new PageClient({
@@ -119,6 +151,7 @@ const controller = new ScreenshotController({
     ),
     stitcher,
     indicator,
+    stages,
   }),
   stitcher,
   namer: new TimestampedNamer({
@@ -132,14 +165,18 @@ const controller = new ScreenshotController({
     new DownloadCompletion(chrome.downloads.onChanged),
   ),
   indicator,
-  errors: new ChromeErrorExplainer(TRANSLATIONS),
+  stages,
+  errors: new ChromeErrorExplainer([
+    new OwnPageRefusal(REFUSALS.ownPages),
+    new WebStoreRefusal(REFUSALS.webStore),
+    new LocalFileRefusal(REFUSALS.localFiles),
+    new LeftTabRefusal(REFUSALS.leftTab),
+  ]),
 });
 
 chrome.action.onClicked.addListener((tab) => {
   void controller.take(tab);
-  // Beside the capture, never part of it: a failed read must not stop a
-  // screenshot, and the capture does not wait for it.
-  void clickScheme.clicked(tab).catch(() => undefined);
+  void clickScheme.clicked(tab);
 });
 chrome.runtime.onMessage.addListener(
   (message: unknown, sender, sendResponse: (reply: Reply<unknown>) => void) =>

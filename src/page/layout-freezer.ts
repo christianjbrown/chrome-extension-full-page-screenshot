@@ -1,15 +1,19 @@
 import type { Freezer } from "./freezer";
 import type { PageElement, PageElements } from "./page-elements";
-import type { PositionRule, PositionRules } from "./freeze-rules";
+import type { PositionRule } from "./position-rule";
 import type { StyleOverrides } from "./inline-styles";
 
 // Stops headers and footers from repeating down the stitched image.
 export class LayoutFreezer implements Freezer {
+  private readonly rules: ReadonlyMap<string, PositionRule>;
+
   constructor(
     private readonly elements: PageElements,
     private readonly ledger: StyleOverrides,
-    private readonly rules: PositionRules,
-  ) {}
+    rules: readonly PositionRule[],
+  ) {
+    this.rules = new Map(rules.map((rule) => [rule.position, rule]));
+  }
 
   // Pages often only make a header fixed once scrolled, so this looks again
   // each time.

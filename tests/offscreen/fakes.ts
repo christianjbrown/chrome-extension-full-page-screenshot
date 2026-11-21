@@ -18,7 +18,7 @@ export interface Draw {
   targetY: number;
 }
 
-export class FakeSurface implements Surface {
+export class FakeSurface implements Surface<Bitmap> {
   readonly draws: Draw[] = [];
   written = false;
 

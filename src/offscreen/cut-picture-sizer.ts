@@ -21,7 +21,7 @@ export class CutPictureSizer implements PictureSizer {
       width: captureWidth,
       height,
       scale,
-      sheets: this.cutter.partsFor(captureWidth, height),
+      parts: this.cutter.partsFor(captureWidth, height),
     };
   }
 }

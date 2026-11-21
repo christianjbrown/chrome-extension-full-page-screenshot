@@ -47,10 +47,20 @@ describe("ReplyUnwrapper", () => {
     );
   });
 
-  it("says who did not answer", () => {
-    expect(() => unwrap(undefined, "The page")).toThrow(
-      "The page did not answer",
-    );
+  it("returns nothing from a success whose value was left out", () => {
+    expect(unwrap({ ok: true }, "The page")).toBeUndefined();
+  });
+
+  it.each([
+    undefined,
+    null,
+    "yes",
+    {},
+    { ok: "true" },
+    { ok: false },
+    { ok: false, error: 7 },
+  ])("says who did not answer when the reply is %j", (reply) => {
+    expect(() => unwrap(reply, "The page")).toThrow("The page did not answer");
   });
 });
 

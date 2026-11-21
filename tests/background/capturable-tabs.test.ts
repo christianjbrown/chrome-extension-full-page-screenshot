@@ -4,14 +4,16 @@ import {
   LocalFileRule,
   WebStoreRule,
 } from "../../src/background/capture-rules";
+import { REFUSALS } from "../../src/background/refusals";
 
 const tabs = (fileAccess = false) =>
   new CapturableTabs([
-    new BrowserPageRule(),
-    new WebStoreRule(),
-    new LocalFileRule({
-      isAllowedFileSchemeAccess: () => Promise.resolve(fileAccess),
-    }),
+    new BrowserPageRule(REFUSALS.ownPages),
+    new WebStoreRule(REFUSALS.webStore),
+    new LocalFileRule(
+      { isAllowedFileSchemeAccess: () => Promise.resolve(fileAccess) },
+      REFUSALS.localFiles,
+    ),
   ]);
 
 describe("CapturableTabs", () => {

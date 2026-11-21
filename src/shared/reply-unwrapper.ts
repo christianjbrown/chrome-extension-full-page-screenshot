@@ -1,3 +1,4 @@
+import { isReply } from "./message-fields";
 import type { Reply } from "./messages";
 import type { ReplyReader } from "./replies";
 
@@ -8,11 +9,12 @@ export class ReplyUnwrapper implements ReplyReader {
     return this.valueOf(this.answered(reply, who));
   }
 
+  // Nothing at all, or anything a Responder would not send, is no answer.
   private answered(reply: unknown, who: string): Reply<unknown> {
-    if (reply === undefined) {
+    if (!isReply(reply)) {
       throw new Error(who + NO_ANSWER);
     }
-    return reply as Reply<unknown>;
+    return reply;
   }
 
   private valueOf(reply: Reply<unknown>): unknown {

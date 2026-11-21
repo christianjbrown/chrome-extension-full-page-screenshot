@@ -1,37 +1,20 @@
 import type { Timer } from "../shared/timer";
 import type { ImageWaiter } from "./image-waiter";
+import type { ImageBox, PageImage, PageImages } from "./page-images";
 import type { Viewport } from "./viewport";
-
-// Where an image sits in the viewport, in CSS pixels.
-interface ImageBox {
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-}
-
-export interface PageImage {
-  complete: boolean;
-  getBoundingClientRect(): ImageBox;
-  decode(): Promise<void>;
-}
-
-export interface DocumentImages {
-  images: Iterable<unknown>;
-}
 
 export class VisibleImageWaiter implements ImageWaiter {
   constructor(
-    private readonly document: DocumentImages,
+    private readonly images: PageImages,
     private readonly viewport: Viewport,
     private readonly timer: Timer,
     private readonly patienceMs: number,
   ) {}
 
   async waitForVisible(): Promise<boolean> {
-    const loading = (Array.from(this.document.images) as PageImage[]).filter(
-      (image) => !image.complete && this.onScreen(image),
-    );
+    const loading = this.images
+      .all()
+      .filter((image) => !image.complete && this.onScreen(image));
     if (loading.length === 0) {
       return false;
     }

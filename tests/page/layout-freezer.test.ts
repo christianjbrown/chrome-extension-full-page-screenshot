@@ -1,4 +1,4 @@
-import { FREEZE_RULES } from "../../src/page/freeze-rules";
+import { FixedRule, StickyRule } from "../../src/page/freeze-rules";
 import { LayoutFreezer } from "../../src/page/layout-freezer";
 import { StyleLedger } from "../../src/page/style-ledger";
 import { FakeElements, fakeElement } from "./fakes";
@@ -15,7 +15,10 @@ function setUp() {
     plain,
     elements,
     ledger,
-    freezer: new LayoutFreezer(elements, ledger, FREEZE_RULES),
+    freezer: new LayoutFreezer(elements, ledger, [
+      new StickyRule(),
+      new FixedRule(),
+    ]),
   };
 }
 
@@ -49,12 +52,13 @@ describe("LayoutFreezer", () => {
 
   it("follows the rules it is given", () => {
     const { sticky, fixed, elements, ledger } = setUp();
-    const rules = new Map([
-      [
-        "fixed",
-        { applies: () => true, overrides: [["color", "red"]] as const },
-      ],
-    ]);
+    const rules = [
+      {
+        position: "fixed",
+        applies: () => true,
+        overrides: [["color", "red"]] as const,
+      },
+    ];
 
     new LayoutFreezer(elements, ledger, rules).freeze(false);
 

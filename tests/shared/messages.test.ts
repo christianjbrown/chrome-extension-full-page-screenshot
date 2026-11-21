@@ -1,5 +1,5 @@
 import { errorMessage } from "../../src/shared/error-message";
-import { isMessageFor } from "../../src/shared/messages";
+import { isAddressed, isMessageFor } from "../../src/shared/messages";
 import { RuntimeMessenger } from "../../src/shared/runtime-messenger";
 
 describe("isMessageFor", () => {
@@ -17,6 +17,23 @@ describe("isMessageFor", () => {
 
   it.each([null, undefined, "offscreen", 42])("rejects %s", (message) => {
     expect(isMessageFor(message, "offscreen")).toBe(false);
+  });
+});
+
+describe("isAddressed", () => {
+  it("accepts a message of the type for the target", () => {
+    expect(
+      isAddressed({ target: "page", type: "scroll" }, "page", "scroll"),
+    ).toBe(true);
+  });
+
+  it.each([
+    { target: "page", type: "prepare" },
+    { target: "offscreen", type: "scroll" },
+    { target: "page" },
+    null,
+  ])("rejects %j", (message) => {
+    expect(isAddressed(message, "page", "scroll")).toBe(false);
   });
 });
 

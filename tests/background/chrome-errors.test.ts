@@ -1,8 +1,19 @@
-import { TRANSLATIONS } from "../../src/background/chrome-error-translations";
 import { ChromeErrorExplainer } from "../../src/background/chrome-errors";
+import {
+  LeftTabRefusal,
+  LocalFileRefusal,
+  OwnPageRefusal,
+  WebStoreRefusal,
+} from "../../src/background/chrome-refusals";
+import { REFUSALS } from "../../src/background/refusals";
 
-const explain = (message: string) =>
-  new ChromeErrorExplainer(TRANSLATIONS).explain(new Error(message));
+const explainer = new ChromeErrorExplainer([
+  new OwnPageRefusal(REFUSALS.ownPages),
+  new WebStoreRefusal(REFUSALS.webStore),
+  new LocalFileRefusal(REFUSALS.localFiles),
+  new LeftTabRefusal(REFUSALS.leftTab),
+]);
+const explain = (message: string) => explainer.explain(new Error(message));
 
 describe("ChromeErrorExplainer", () => {
   it.each([
@@ -36,8 +47,6 @@ describe("ChromeErrorExplainer", () => {
 
   it("passes anything else through as it is", () => {
     expect(explain("FILE_NO_SPACE")).toBe("FILE_NO_SPACE");
-    expect(new ChromeErrorExplainer(TRANSLATIONS).explain("plain")).toBe(
-      "plain",
-    );
+    expect(explainer.explain("plain")).toBe("plain");
   });
 });

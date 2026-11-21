@@ -2,7 +2,7 @@ import { Reinstaller, type Installed } from "../../src/page/reinstaller";
 
 function setUp() {
   let held: Installed<string> | undefined;
-  const registry = { add: vi.fn(), remove: vi.fn() };
+  const registry = { addListener: vi.fn(), removeListener: vi.fn() };
   const slot = {
     get: () => held,
     set: vi.fn((installed: Installed<string>) => {
@@ -24,8 +24,8 @@ describe("Reinstaller", () => {
 
     reinstaller.install(first);
 
-    expect(registry.add).toHaveBeenCalledWith("a");
-    expect(registry.remove).not.toHaveBeenCalled();
+    expect(registry.addListener).toHaveBeenCalledWith("a");
+    expect(registry.removeListener).not.toHaveBeenCalled();
     expect(slot.set).toHaveBeenCalledWith(first);
   });
 
@@ -36,8 +36,8 @@ describe("Reinstaller", () => {
 
     reinstaller.install(installed("b"));
 
-    expect(registry.remove).toHaveBeenCalledWith("a");
+    expect(registry.removeListener).toHaveBeenCalledWith("a");
     expect(first.controller.restore).toHaveBeenCalledTimes(1);
-    expect(registry.add).toHaveBeenLastCalledWith("b");
+    expect(registry.addListener).toHaveBeenLastCalledWith("b");
   });
 });

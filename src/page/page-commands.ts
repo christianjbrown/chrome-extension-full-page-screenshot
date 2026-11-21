@@ -1,4 +1,4 @@
-import type { PageLayout } from "../shared/messages";
+import type { PageLayout } from "../shared/page-layout";
 
 // What the service worker asks of the page while it captures, one need at a
 // time. Putting the page back is a Restorable.

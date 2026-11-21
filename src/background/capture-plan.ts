@@ -1,4 +1,5 @@
-import type { PageLayout, Rect } from "../shared/messages";
+import type { PageLayout } from "../shared/page-layout";
+import type { Rect } from "../shared/rect";
 import type { CapturePlan, CapturePlanner } from "./capture-planner";
 
 // How far a capture may go. The config says why each one is there.

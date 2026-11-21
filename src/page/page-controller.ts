@@ -1,4 +1,4 @@
-import type { PageLayout } from "../shared/messages";
+import type { PageLayout } from "../shared/page-layout";
 import type { ImageWaiter } from "./image-waiter";
 import type { Freezer } from "./freezer";
 import type { PagePreparer, PageScroller } from "./page-commands";

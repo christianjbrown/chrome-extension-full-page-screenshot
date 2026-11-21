@@ -1,5 +1,6 @@
+// Pages Chrome will not let an extension capture. What the person who clicked
+// is told about each is passed in by the root.
 import type { CaptureRule } from "./capture-rule";
-import { REFUSALS } from "./refusals";
 
 export interface FileSchemeAccess {
   isAllowedFileSchemeAccess(): Promise<boolean>;
@@ -12,7 +13,7 @@ const WEB_STORE =
   /^https:\/\/(chromewebstore\.google\.com|chrome\.google\.com\/webstore)(\/|$)/;
 
 export class BrowserPageRule implements CaptureRule {
-  readonly reason = REFUSALS.ownPages;
+  constructor(readonly reason: string) {}
 
   blocks(url: string): Promise<boolean> {
     return Promise.resolve(BROWSER_PAGE.test(url));
@@ -20,7 +21,7 @@ export class BrowserPageRule implements CaptureRule {
 }
 
 export class WebStoreRule implements CaptureRule {
-  readonly reason = REFUSALS.webStore;
+  constructor(readonly reason: string) {}
 
   blocks(url: string): Promise<boolean> {
     return Promise.resolve(WEB_STORE.test(url));
@@ -28,9 +29,10 @@ export class WebStoreRule implements CaptureRule {
 }
 
 export class LocalFileRule implements CaptureRule {
-  readonly reason = REFUSALS.localFiles;
-
-  constructor(private readonly files: FileSchemeAccess) {}
+  constructor(
+    private readonly files: FileSchemeAccess,
+    readonly reason: string,
+  ) {}
 
   async blocks(url: string): Promise<boolean> {
     return (

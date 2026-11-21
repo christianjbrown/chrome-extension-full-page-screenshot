@@ -1,4 +1,9 @@
 import { ToolbarIndicator } from "../../src/background/toolbar-indicator";
+import {
+  FailedStage,
+  ProgressStage,
+  SteadyStage,
+} from "../../src/background/toolbar-stages";
 
 function action() {
   return {
@@ -8,39 +13,45 @@ function action() {
   };
 }
 
+const look = { badge: "!", colour: "#dc2626", title: "Failed: " };
+
 describe("ToolbarIndicator", () => {
-  it.each([
-    {
-      show: (indicator: ToolbarIndicator) => indicator.showIdle(),
-      text: "",
-      color: "#5a5a60",
-      title: "Screenshot this whole page",
-    },
-    {
-      show: (indicator: ToolbarIndicator) => indicator.showProgress(0.426),
-      text: "43%",
-      color: "#2563eb",
-      title: "Capturing the page. Hold still.",
-    },
-    {
-      show: (indicator: ToolbarIndicator) => indicator.showSaving(),
-      text: "...",
-      color: "#2563eb",
-      title: "Saving the screenshot",
-    },
-    {
-      show: (indicator: ToolbarIndicator) => indicator.showError("no access"),
-      text: "!",
-      color: "#dc2626",
-      title: "Screenshot failed: no access",
-    },
-  ])("shows $title", async ({ show, text, color, title }) => {
+  it("puts the button in the stage's look for its detail", async () => {
     const toolbar = action();
+    const stage = { lookFor: vi.fn(() => look) };
 
-    await show(new ToolbarIndicator(toolbar));
+    await new ToolbarIndicator(toolbar).show(stage, "detail");
 
-    expect(toolbar.setBadgeText).toHaveBeenCalledWith({ text });
-    expect(toolbar.setBadgeBackgroundColor).toHaveBeenCalledWith({ color });
-    expect(toolbar.setTitle).toHaveBeenCalledWith({ title });
+    expect(stage.lookFor).toHaveBeenCalledWith("detail");
+    expect(toolbar.setBadgeText).toHaveBeenCalledWith({ text: "!" });
+    expect(toolbar.setBadgeBackgroundColor).toHaveBeenCalledWith({
+      color: "#dc2626",
+    });
+    expect(toolbar.setTitle).toHaveBeenCalledWith({ title: "Failed: " });
+  });
+});
+
+describe("SteadyStage", () => {
+  it("always looks the same", () => {
+    expect(new SteadyStage(look).lookFor()).toEqual(look);
+  });
+});
+
+describe("ProgressStage", () => {
+  it("shows how far the capture has got as a percentage", () => {
+    expect(new ProgressStage("#2563eb", "Capturing").lookFor(0.426)).toEqual({
+      badge: "43%",
+      colour: "#2563eb",
+      title: "Capturing",
+    });
+  });
+});
+
+describe("FailedStage", () => {
+  it("says why after its own title", () => {
+    expect(new FailedStage(look).lookFor("no access")).toEqual({
+      ...look,
+      title: "Failed: no access",
+    });
   });
 });

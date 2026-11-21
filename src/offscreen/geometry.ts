@@ -1,4 +1,4 @@
-import type { Rect } from "../shared/messages";
+import type { Rect } from "../shared/rect";
 import type { Box } from "./surfaces";
 
 // Where a box of the capture goes in the picture.

@@ -1,9 +1,7 @@
 import { schemeFor, type ColourScheme } from "../shared/colour-scheme";
-import {
-  BACKGROUND_TYPES,
-  TARGETS,
-  type BackgroundMessage,
-} from "../shared/messages";
+import type { BackgroundMessage } from "../shared/messages";
+import { SCHEME } from "../shared/scheme-message";
+import { TARGETS } from "../shared/targets";
 import type { MessageSender } from "../shared/message-sender";
 
 // The part of a MediaQueryList this needs.
@@ -47,7 +45,7 @@ export class SchemeReporter {
     this.messages
       .send({
         target: TARGETS.background,
-        type: BACKGROUND_TYPES.scheme,
+        type: SCHEME,
         scheme,
       })
       .catch(() => {

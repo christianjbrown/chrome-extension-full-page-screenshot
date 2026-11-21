@@ -1,4 +1,4 @@
-import type { Rect } from "../shared/messages";
+import type { Rect } from "../shared/rect";
 
 // The service worker's handle on the document that stitches the slices.
 export interface StitchSession {

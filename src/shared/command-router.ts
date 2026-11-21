@@ -1,4 +1,5 @@
 import type { Command, Message } from "./command";
+import type { Fields } from "./fields";
 import type { MessageFilter, Sender } from "./message-filter";
 import type { Reply } from "./messages";
 import type { Responder } from "./replies";
@@ -31,7 +32,7 @@ export class CommandRouter<M extends Message> {
   }
 
   private dispatch(
-    message: { type: unknown },
+    message: Fields,
     reply: (reply: Reply<unknown>) => void,
   ): boolean {
     const command = this.commands.get(message.type);
