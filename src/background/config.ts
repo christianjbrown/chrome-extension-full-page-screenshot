@@ -9,9 +9,6 @@ export interface BackgroundConfig {
   minFrameHeight: number;
   // More slices than this would take hours, so the capture is refused.
   maxSlices: number;
-  // Chrome allows two captureVisibleTab calls a second and fails the third, so
-  // captures are spaced out a little wider than that.
-  captureSpacingMs: number;
   // A page title longer than this is cut, so the file name stays manageable.
   maxTitleLength: number;
 }
@@ -20,6 +17,5 @@ export const BACKGROUND_CONFIG: BackgroundConfig = {
   maxPageHeight: 60000,
   minFrameHeight: 100,
   maxSlices: 1000,
-  captureSpacingMs: 600,
   maxTitleLength: 80,
 };

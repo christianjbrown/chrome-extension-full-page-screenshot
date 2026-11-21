@@ -13,6 +13,7 @@ import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { CapturableTabs } from "./capturable-tabs";
 import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
+import { CAPTURE_SPACING_MS } from "./capture-quota";
 import { ChromeErrorExplainer, TRANSLATIONS } from "./chrome-errors";
 import { ClickScheme } from "./click-scheme";
 import { BACKGROUND_CONFIG } from "./config";
@@ -107,7 +108,7 @@ const controller = new ScreenshotController({
       chrome.tabs,
       clock,
       new TimerSleeper((callback, ms) => setTimeout(callback, ms)),
-      BACKGROUND_CONFIG.captureSpacingMs,
+      CAPTURE_SPACING_MS,
     ),
     stitcher,
     indicator,

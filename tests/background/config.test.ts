@@ -10,10 +10,6 @@ describe("background config", () => {
     expect(BACKGROUND_CONFIG.minFrameHeight).toBe(100);
   });
 
-  it("spaces captures a little wider than Chrome's two a second", () => {
-    expect(BACKGROUND_CONFIG.captureSpacingMs).toBe(600);
-  });
-
   it("cuts a title to 80 characters in the file name", () => {
     expect(BACKGROUND_CONFIG.maxTitleLength).toBe(80);
   });

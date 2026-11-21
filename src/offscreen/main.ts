@@ -16,6 +16,7 @@ import {
 import { SettledResponder } from "../shared/replies";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { BlobUrls } from "./blob-urls";
+import { MAX_PART_PIXELS, MAX_PART_SIDE } from "./canvas-limits";
 import { OFFSCREEN_CONFIG } from "./config";
 import { DataUrlDecoder } from "./image-decoder";
 import { DeviceGeometry } from "./device-geometry";
@@ -35,10 +36,7 @@ const stitcher = new Stitcher({
   ),
   sizer: new CutPictureSizer(
     geometry,
-    new CanvasLimitCutter(
-      OFFSCREEN_CONFIG.maxPartSide,
-      OFFSCREEN_CONFIG.maxPartPixels,
-    ),
+    new CanvasLimitCutter(MAX_PART_SIDE, MAX_PART_PIXELS),
   ),
   placing: geometry,
   surfaces: new OffscreenCanvasSurfaces(OffscreenCanvas),
