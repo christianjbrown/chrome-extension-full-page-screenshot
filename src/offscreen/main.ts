@@ -6,7 +6,7 @@
 import { DARK_SCHEME_QUERY } from "../shared/colour-scheme";
 import { CommandRouter } from "../shared/command-router";
 import { offscreenGuards } from "../shared/message-guards";
-import type { OffscreenMessage, Reply } from "../shared/messages";
+import { TARGETS, type OffscreenMessage, type Reply } from "../shared/messages";
 import { BlobUrls } from "./blob-urls";
 import { OFFSCREEN_CONFIG } from "./config";
 import { DataUrlDecoder } from "./image-decoder";
@@ -28,7 +28,7 @@ const stitcher = new Stitcher({
   urls: new BlobUrls(URL),
 });
 const router = new CommandRouter<OffscreenMessage>(
-  "offscreen",
+  TARGETS.offscreen,
   {
     begin: (message) => stitcher.begin(message.width, message.height),
     slice: (message) =>

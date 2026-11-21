@@ -3,9 +3,9 @@
 // reinstaller keeps from piling up listeners.
 import { CommandRouter } from "../shared/command-router";
 import { pageGuards } from "../shared/message-guards";
-import type { PageMessage, Reply } from "../shared/messages";
+import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
 import { VisibleImageWaiter } from "./image-waiter";
-import { LayoutFreezer } from "./layout-freezer";
+import { FREEZE_RULES, LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
 import { DomElements, type PageElement } from "./page-elements";
 import { Reinstaller, type Installed } from "./reinstaller";
@@ -56,7 +56,7 @@ const controller = new PageController({
     new DomScrollerFactory(window, root),
   ),
   ledger,
-  freezer: new LayoutFreezer(elements, ledger),
+  freezer: new LayoutFreezer(elements, ledger, FREEZE_RULES),
   settler: new FrameSettler(
     (callback) => requestAnimationFrame(callback),
     (callback, ms) => setTimeout(callback, ms),
@@ -72,7 +72,7 @@ const controller = new PageController({
   viewport: window,
 });
 const router = new CommandRouter<PageMessage>(
-  "page",
+  TARGETS.page,
   {
     prepare: () => controller.prepare(),
     scroll: (message) => controller.scrollTo(message.y, message.hideFixed),

@@ -16,38 +16,52 @@ const RED = "#dc2626";
 const BLUE = "#2563eb";
 const GREY = "#5a5a60";
 
+const NO_BADGE = "";
+const SAVING_BADGE = "...";
+const ERROR_BADGE = "!";
+const PERCENT = 100;
+const PERCENT_SIGN = "%";
+
+// The button's tooltip. The idle one matches the manifest's default_title.
+export const TITLES = {
+  idle: "Screenshot this whole page",
+  capturing: "Capturing the page. Hold still.",
+  saving: "Saving the screenshot",
+  failedBecause: "Screenshot failed: ",
+} as const;
+
 export class ToolbarIndicator implements ScreenshotIndicator {
   constructor(private readonly action: ToolbarAction) {}
 
   showIdle(): Promise<void> {
     return this.show({
-      badge: "",
+      badge: NO_BADGE,
       colour: GREY,
-      title: "Screenshot this whole page",
+      title: TITLES.idle,
     });
   }
 
   showProgress(fraction: number): Promise<void> {
     return this.show({
-      badge: `${String(Math.round(fraction * 100))}%`,
+      badge: String(Math.round(fraction * PERCENT)) + PERCENT_SIGN,
       colour: BLUE,
-      title: "Capturing the page. Hold still.",
+      title: TITLES.capturing,
     });
   }
 
   showSaving(): Promise<void> {
     return this.show({
-      badge: "...",
+      badge: SAVING_BADGE,
       colour: BLUE,
-      title: "Saving the screenshot",
+      title: TITLES.saving,
     });
   }
 
   showError(message: string): Promise<void> {
     return this.show({
-      badge: "!",
+      badge: ERROR_BADGE,
       colour: RED,
-      title: `Screenshot failed: ${message}`,
+      title: TITLES.failedBecause + message,
     });
   }
 

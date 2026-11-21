@@ -5,6 +5,8 @@ import { isFiniteNumber, isPositiveNumber } from "../shared/numbers";
 export const MAX_PART_SIDE = 16384;
 export const MAX_PART_PIXELS = 64 * 1024 * 1024;
 
+const BAD_SIZE = "The capture has an unusable size";
+
 export interface Part {
   top: number;
   height: number;
@@ -18,7 +20,7 @@ export interface PartCutter {
 export class CanvasLimitCutter implements PartCutter {
   partsFor(width: number, height: number): Part[] {
     if (!isPositiveNumber(width) || !isFiniteNumber(height) || height < 0) {
-      throw new Error("The capture has an unusable size");
+      throw new Error(BAD_SIZE);
     }
     const tallest = Math.min(
       MAX_PART_SIDE,

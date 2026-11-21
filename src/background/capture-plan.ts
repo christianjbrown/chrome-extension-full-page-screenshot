@@ -10,6 +10,8 @@ const MIN_FRAME_HEIGHT = 100;
 // More slices than this would take hours, so the capture is refused.
 const MAX_SLICES = 1000;
 
+const TOO_LONG = "This page is too long to capture";
+
 interface PlannedSlice {
   scroll: number;
   // The parts of the viewport this slice contributes. Each belongs in the
@@ -46,7 +48,7 @@ function scrollsDownTo(deepest: number, step: number): number[] {
   for (let scroll = step; scroll < deepest; scroll += step) {
     scrolls.push(scroll);
     if (scrolls.length > MAX_SLICES) {
-      throw new Error("This page is too long to capture");
+      throw new Error(TOO_LONG);
     }
   }
   if (deepest > 0) {

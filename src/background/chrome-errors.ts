@@ -1,4 +1,5 @@
 import { errorMessage } from "../shared/error-message";
+import { REFUSALS } from "./refusals";
 
 export interface ErrorExplainer {
   explain(error: unknown): string;
@@ -9,25 +10,25 @@ interface Translation {
   message: string;
 }
 
-const OWN_PAGES = "Chrome does not let extensions capture its own pages";
-
 const TRANSLATIONS: readonly Translation[] = [
   // Without the tabs permission Chrome hides its own pages' URLs from the
   // extension, so these only come to light when the injection is refused.
-  { pattern: /^Cannot access a [a-z-]+:\/\/ URL/, message: OWN_PAGES },
-  { pattern: /^Cannot access contents of url "chrome/, message: OWN_PAGES },
+  { pattern: /^Cannot access a [a-z-]+:\/\/ URL/, message: REFUSALS.ownPages },
+  {
+    pattern: /^Cannot access contents of url "chrome/,
+    message: REFUSALS.ownPages,
+  },
   {
     pattern: /extensions gallery cannot be scripted/,
-    message: "Chrome does not let extensions capture the Web Store",
+    message: REFUSALS.webStore,
   },
   {
     pattern: /^Cannot access contents of url "file:/,
-    message:
-      "Turn on Allow access to file URLs for this extension to capture local files",
+    message: REFUSALS.localFiles,
   },
   {
     pattern: /'activeTab' permission is required/,
-    message: "Stay on the tab until the screenshot is done",
+    message: REFUSALS.leftTab,
   },
 ];
 

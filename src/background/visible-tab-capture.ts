@@ -1,3 +1,4 @@
+import { PNG_FORMAT } from "../shared/png";
 import type { Clock } from "./screenshot-namer";
 
 export interface VisibleTabCapture {
@@ -7,7 +8,7 @@ export interface VisibleTabCapture {
 export interface CaptureApi {
   captureVisibleTab(
     windowId: number,
-    options: { format: "png" },
+    options: { format: typeof PNG_FORMAT },
   ): Promise<string>;
 }
 
@@ -34,7 +35,7 @@ export class ThrottledCapture implements VisibleTabCapture {
       await this.sleeper.sleep(wait);
     }
     this.last = this.clock.now().getTime();
-    return this.tabs.captureVisibleTab(windowId, { format: "png" });
+    return this.tabs.captureVisibleTab(windowId, { format: PNG_FORMAT });
   }
 }
 

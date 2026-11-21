@@ -16,11 +16,13 @@ export function replyWhenDone<T>(
   );
 }
 
+const NO_ANSWER = " did not answer";
+
 // The other side of replyWhenDone: the value, or the other side's error thrown here.
 export function unwrap(reply: unknown, who: string): unknown {
   const typed = reply as Reply<unknown> | undefined;
   if (typed === undefined) {
-    throw new Error(`${who} did not answer`);
+    throw new Error(who + NO_ANSWER);
   }
   if (!typed.ok) {
     throw new Error(typed.error);

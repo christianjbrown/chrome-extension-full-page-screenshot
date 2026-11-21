@@ -1,6 +1,14 @@
-import type { PageLayout, PageMessage } from "../shared/messages";
+import {
+  PAGE_TYPES,
+  TARGETS,
+  type PageLayout,
+  type PageMessage,
+} from "../shared/messages";
 import { unwrap } from "../shared/replies";
 import type { PageValidator } from "./page-validator";
+
+// Who failed to answer, in an error.
+const PAGE = "The page";
 
 // The service worker's handle on the script it injects into the page.
 export interface PageDriver {
@@ -39,7 +47,7 @@ export class PageClient implements PageDriver {
 
   async prepare(tabId: number): Promise<PageLayout> {
     return this.validator.layout(
-      await this.ask(tabId, { target: "page", type: "prepare" }),
+      await this.ask(tabId, { target: TARGETS.page, type: PAGE_TYPES.prepare }),
     );
   }
 
@@ -49,15 +57,20 @@ export class PageClient implements PageDriver {
     hideFixed: boolean,
   ): Promise<number> {
     return this.validator.scroll(
-      await this.ask(tabId, { target: "page", type: "scroll", y, hideFixed }),
+      await this.ask(tabId, {
+        target: TARGETS.page,
+        type: PAGE_TYPES.scroll,
+        y,
+        hideFixed,
+      }),
     );
   }
 
   async restore(tabId: number): Promise<void> {
-    await this.ask(tabId, { target: "page", type: "restore" });
+    await this.ask(tabId, { target: TARGETS.page, type: PAGE_TYPES.restore });
   }
 
   private async ask(tabId: number, message: PageMessage): Promise<unknown> {
-    return unwrap(await this.tabs.sendMessage(tabId, message), "The page");
+    return unwrap(await this.tabs.sendMessage(tabId, message), PAGE);
   }
 }

@@ -5,13 +5,14 @@ export interface HiddenDocument {
 }
 
 const OFFSCREEN_REASONS = ["BLOBS", "MATCH_MEDIA"] as const;
+const OFFSCREEN_DOCUMENT = "OFFSCREEN_DOCUMENT";
 export const OFFSCREEN_JUSTIFICATION =
   "Stitches the screenshot and hands it to downloads, and reads the colour scheme so the toolbar icon matches it";
 
 export interface OffscreenDocuments {
   createDocument(parameters: {
     url: string;
-    reasons: ["BLOBS", "MATCH_MEDIA"];
+    reasons: (typeof OFFSCREEN_REASONS)[number][];
     justification: string;
   }): Promise<void>;
   closeDocument(): Promise<void>;
@@ -19,7 +20,7 @@ export interface OffscreenDocuments {
 
 export interface ContextLookup {
   getContexts(filter: {
-    contextTypes: ["OFFSCREEN_DOCUMENT"];
+    contextTypes: [typeof OFFSCREEN_DOCUMENT];
     documentUrls: [string];
   }): Promise<unknown[]>;
   getURL(path: string): string;
@@ -70,7 +71,7 @@ export class OffscreenPage implements HiddenDocument {
 
   private async isOpen(): Promise<boolean> {
     const contexts = await this.contexts.getContexts({
-      contextTypes: ["OFFSCREEN_DOCUMENT"],
+      contextTypes: [OFFSCREEN_DOCUMENT],
       documentUrls: [this.contexts.getURL(this.path)],
     });
     return contexts.length > 0;

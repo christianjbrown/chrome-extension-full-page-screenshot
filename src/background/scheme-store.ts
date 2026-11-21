@@ -1,4 +1,5 @@
-import { isColourScheme, type SchemeState } from "./scheme-state";
+import { isColourScheme } from "../shared/colour-scheme";
+import type { SchemeState } from "./scheme-state";
 
 export interface StorageArea {
   get(key: string): Promise<Record<string, unknown>>;

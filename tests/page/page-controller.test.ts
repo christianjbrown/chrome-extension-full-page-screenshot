@@ -1,4 +1,4 @@
-import { LayoutFreezer } from "../../src/page/layout-freezer";
+import { FREEZE_RULES, LayoutFreezer } from "../../src/page/layout-freezer";
 import { PageController } from "../../src/page/page-controller";
 import { WindowScroller } from "../../src/page/scrollers";
 import { StyleLedger } from "../../src/page/style-ledger";
@@ -27,7 +27,7 @@ function setUp() {
   const controller = new PageController({
     scrollers: { find: () => new WindowScroller(window, root) },
     ledger,
-    freezer: new LayoutFreezer(elements, ledger),
+    freezer: new LayoutFreezer(elements, ledger, FREEZE_RULES),
     settler,
     images,
     root,

@@ -6,6 +6,12 @@ import type { Rect } from "../shared/messages";
 import { isFiniteNumber, isPositiveNumber } from "../shared/numbers";
 import type { Bitmap, Surface, SurfaceFactory } from "./surfaces";
 
+const ERRORS = {
+  size: "The page has an unusable size",
+  scroll: "The page has an unusable scroll position",
+  width: "The capture has no width",
+} as const;
+
 // What the service worker asks of the offscreen document.
 interface StitchCommands {
   begin(width: number, height: number): Promise<void>;
@@ -47,7 +53,7 @@ export class Stitcher implements StitchCommands {
 
   begin(width: number, height: number): Promise<void> {
     if (!isPositiveNumber(width) || !isPositiveNumber(height)) {
-      return Promise.reject(new Error("The page has an unusable size"));
+      return Promise.reject(new Error(ERRORS.size));
     }
     this.size = { width, height };
     this.picture = undefined;
@@ -56,7 +62,7 @@ export class Stitcher implements StitchCommands {
 
   async add(dataUrl: string, rects: Rect[], scroll: number): Promise<void> {
     if (!isFiniteNumber(scroll)) {
-      throw new Error("The page has an unusable scroll position");
+      throw new Error(ERRORS.scroll);
     }
     const image = await this.deps.decoder.decode(dataUrl);
     try {
@@ -85,7 +91,7 @@ export class Stitcher implements StitchCommands {
   private pictureFor(image: Bitmap): Picture {
     if (this.picture === undefined) {
       if (!isPositiveNumber(image.width)) {
-        throw new Error("The capture has no width");
+        throw new Error(ERRORS.width);
       }
       const { geometry } = this.deps;
       const scale = geometry.scaleFor(image.width, this.size.width);

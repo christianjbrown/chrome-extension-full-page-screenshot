@@ -1,7 +1,6 @@
+import { SCROLLING_OVERFLOW } from "./css";
 import type { PageElement, PageElements } from "./page-elements";
 import type { Scroller, ScrollerFactory, WindowLike } from "./scrollers";
-
-const SCROLLING = ["auto", "scroll", "overlay"];
 
 // Picks the window when the page itself scrolls, and otherwise the biggest
 // element that scrolls its own content, as web apps with a fixed shell do.
@@ -39,7 +38,7 @@ export class ScrollerFinder {
   private scrolls(element: PageElement): boolean {
     return (
       element.scrollHeight > element.clientHeight &&
-      SCROLLING.includes(this.elements.lookOf(element).overflowY)
+      SCROLLING_OVERFLOW.includes(this.elements.lookOf(element).overflowY)
     );
   }
 }

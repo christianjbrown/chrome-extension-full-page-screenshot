@@ -1,10 +1,11 @@
 // The service worker: builds the object graph and connects it to Chrome's events.
 import { CommandRouter } from "../shared/command-router";
 import { backgroundGuards } from "../shared/message-guards";
-import type {
-  BackgroundMessage,
-  OffscreenMessage,
-  Reply,
+import {
+  TARGETS,
+  type BackgroundMessage,
+  type OffscreenMessage,
+  type Reply,
 } from "../shared/messages";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { CapturableTabs } from "./capturable-tabs";
@@ -13,6 +14,7 @@ import { SlicePlanner } from "./capture-plan";
 import { ChromeErrorExplainer } from "./chrome-errors";
 import { ClickScheme } from "./click-scheme";
 import { DownloadSaver } from "./download-saver";
+import { OFFSCREEN_DOCUMENT_PATH, PAGE_SCRIPT } from "./entries";
 import { ClaimedFilenames } from "./filename-claims";
 import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
@@ -51,7 +53,7 @@ const clickScheme = new ClickScheme(
 const offscreenPage = new OffscreenPage(
   chrome.offscreen,
   chrome.runtime,
-  "offscreen.html",
+  OFFSCREEN_DOCUMENT_PATH,
 );
 // A capture closes the document so that its blob URLs die, and the watcher has
 // to carry on afterwards.
@@ -60,7 +62,7 @@ const stitcher = new OffscreenStitcher(
   new RuntimeMessenger<OffscreenMessage>(chrome.runtime),
 );
 const router = new CommandRouter<BackgroundMessage>(
-  "background",
+  TARGETS.background,
   { scheme: (message) => toolbarScheme.deviceIs(message.scheme) },
   backgroundGuards,
   chrome.runtime.id,
@@ -75,7 +77,7 @@ const controller = new ScreenshotController({
     page: new PageClient(
       chrome.scripting,
       chrome.tabs,
-      "page.js",
+      PAGE_SCRIPT,
       new FinitePageValidator(),
     ),
     planner: new SlicePlanner(),

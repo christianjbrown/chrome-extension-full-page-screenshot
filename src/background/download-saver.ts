@@ -1,4 +1,5 @@
-import { CONFLICT_ACTION, type FilenameClaims } from "./filename-claims";
+import { CONFLICT_ACTION } from "./conflict-action";
+import type { FilenameClaims } from "./filename-claims";
 import type { FileSaver } from "./file-saver";
 
 interface DownloadDelta {
@@ -6,6 +7,13 @@ interface DownloadDelta {
   state?: { current?: string };
   error?: { current?: string };
 }
+
+// The states of a download that mean Chrome has stopped writing it.
+const DOWNLOAD_STATES = {
+  complete: "complete",
+  interrupted: "interrupted",
+} as const;
+const INTERRUPTED = "Download interrupted";
 
 type DeltaListener = (delta: DownloadDelta) => void;
 
@@ -54,13 +62,13 @@ export class DownloadSaver implements FileSaver {
           return;
         }
         const state = delta.state?.current;
-        if (state === "complete") {
+        if (state === DOWNLOAD_STATES.complete) {
           this.downloads.onChanged.removeListener(listener);
           resolve();
         }
-        if (state === "interrupted") {
+        if (state === DOWNLOAD_STATES.interrupted) {
           this.downloads.onChanged.removeListener(listener);
-          reject(new Error(delta.error?.current ?? "Download interrupted"));
+          reject(new Error(delta.error?.current ?? INTERRUPTED));
         }
       };
       this.downloads.onChanged.addListener(listener);

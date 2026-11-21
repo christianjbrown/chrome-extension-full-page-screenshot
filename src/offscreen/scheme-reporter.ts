@@ -1,5 +1,9 @@
 import { schemeFor, type ColourScheme } from "../shared/colour-scheme";
-import type { BackgroundMessage } from "../shared/messages";
+import {
+  BACKGROUND_TYPES,
+  TARGETS,
+  type BackgroundMessage,
+} from "../shared/messages";
 
 // The part of a MediaQueryList this needs.
 export interface SchemeQuery {
@@ -44,7 +48,11 @@ export class SchemeReporter {
     }
     this.reported = scheme;
     this.channel
-      .sendMessage({ target: "background", type: "scheme", scheme })
+      .sendMessage({
+        target: TARGETS.background,
+        type: BACKGROUND_TYPES.scheme,
+        scheme,
+      })
       .catch(() => {
         this.reported = undefined;
       });

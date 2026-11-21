@@ -1,6 +1,15 @@
-import type { MessageSender, OffscreenMessage, Rect } from "../shared/messages";
+import {
+  OFFSCREEN_TYPES,
+  TARGETS,
+  type MessageSender,
+  type OffscreenMessage,
+  type Rect,
+} from "../shared/messages";
 import type { HiddenDocument } from "./offscreen-page";
 import { unwrap } from "../shared/replies";
+
+// Who failed to answer, in an error.
+const STITCHER = "The stitcher";
 
 // The service worker's handle on the document that stitches the slices.
 export interface StitchSession {
@@ -24,13 +33,18 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
 
   async begin(width: number, height: number): Promise<void> {
     await this.document.open();
-    await this.ask({ target: "offscreen", type: "begin", width, height });
+    await this.ask({
+      target: TARGETS.offscreen,
+      type: OFFSCREEN_TYPES.begin,
+      width,
+      height,
+    });
   }
 
   add(dataUrl: string, rects: Rect[], scroll: number): Promise<void> {
     return this.ask({
-      target: "offscreen",
-      type: "slice",
+      target: TARGETS.offscreen,
+      type: OFFSCREEN_TYPES.slice,
       dataUrl,
       rects,
       scroll,
@@ -38,7 +52,10 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   }
 
   finish(): Promise<string[]> {
-    return this.ask({ target: "offscreen", type: "finish" });
+    return this.ask({
+      target: TARGETS.offscreen,
+      type: OFFSCREEN_TYPES.finish,
+    });
   }
 
   close(): Promise<void> {
@@ -46,6 +63,6 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   }
 
   private async ask<T>(message: OffscreenMessage): Promise<T> {
-    return unwrap(await this.messages.send(message), "The stitcher") as T;
+    return unwrap(await this.messages.send(message), STITCHER) as T;
   }
 }

@@ -19,6 +19,10 @@ const NOT_NEGATIVE: (keyof PageLayout)[] = [
   "frameWidth",
 ];
 
+const BAD_LAYOUT = "The page reported an unusable layout";
+const LIST = ", ";
+const BAD_SCROLL = "The page reported an unusable scroll position";
+
 export class FinitePageValidator implements PageValidator {
   layout(value: unknown): PageLayout {
     const fields = (value ?? {}) as Record<string, unknown>;
@@ -29,16 +33,14 @@ export class FinitePageValidator implements PageValidator {
       ),
     ];
     if (bad.length > 0) {
-      throw new Error(
-        `The page reported an unusable layout (${bad.join(", ")})`,
-      );
+      throw new Error(`${BAD_LAYOUT} (${bad.join(LIST)})`);
     }
     return fields as unknown as PageLayout;
   }
 
   scroll(value: unknown): number {
     if (!isFiniteNumber(value)) {
-      throw new Error("The page reported an unusable scroll position");
+      throw new Error(BAD_SCROLL);
     }
     return value;
   }
