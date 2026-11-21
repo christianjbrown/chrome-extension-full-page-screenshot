@@ -1,6 +1,8 @@
 import {
+  FunctionGuard,
   InstalledGuard,
   InstanceGuard,
+  RestorableGuard,
   StyledGuard,
 } from "../../src/page/guards";
 
@@ -48,8 +50,36 @@ describe("StyledGuard", () => {
   });
 });
 
+describe("FunctionGuard", () => {
+  const guard = new FunctionGuard<(a: number, b: number) => void>(2);
+
+  it("matches a function taking as many arguments", () => {
+    expect(guard.matches((_a: number, _b: number) => undefined)).toBe(true);
+  });
+
+  it.each<unknown>([undefined, "listener", () => undefined])(
+    "refuses %s",
+    (value) => {
+      expect(guard.matches(value)).toBe(false);
+    },
+  );
+});
+
+describe("RestorableGuard", () => {
+  it.each<{ value: unknown; matches: boolean }>([
+    { value: { restore: () => Promise.resolve() }, matches: true },
+    { value: { restore: "no" }, matches: false },
+    { value: null, matches: false },
+  ])("says whether $value can be restored", ({ value, matches }) => {
+    expect(new RestorableGuard().matches(value)).toBe(matches);
+  });
+});
+
 describe("InstalledGuard", () => {
-  const guard = new InstalledGuard<() => void>();
+  const guard = new InstalledGuard(
+    new FunctionGuard<() => void>(0),
+    new RestorableGuard(),
+  );
   const controller = { restore: () => Promise.resolve() };
   const listener = (): void => undefined;
 
@@ -61,6 +91,7 @@ describe("InstalledGuard", () => {
     undefined,
     "installed",
     { listener: "no", controller },
+    { listener: (_extra: unknown) => undefined, controller },
     { listener },
     { listener, controller: {} },
   ])("refuses %j", (value) => {

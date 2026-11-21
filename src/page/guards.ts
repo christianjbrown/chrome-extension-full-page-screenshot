@@ -3,6 +3,7 @@ import { isFields } from "../shared/fields";
 import type { Guard } from "./guard";
 import type { InlineStyle, Styled } from "./inline-styles";
 import type { Installed } from "./reinstaller";
+import type { Restorable } from "./restorable";
 
 // A browser class, such as Element or HTMLImageElement.
 type Kind<T> = abstract new (...args: never[]) => T;
@@ -40,17 +41,38 @@ export class StyledGuard<T> implements Guard<T & Styled> {
   }
 }
 
-const hasRestore = (controller: unknown): boolean =>
-  isFields(controller) && isMethod(controller.restore);
+// A function that takes as many arguments as the kind it stands for. That is
+// as much of a function's type as can be checked while the script runs.
+export class FunctionGuard<F> implements Guard<F> {
+  constructor(private readonly arity: number) {}
 
-// What an earlier copy of the script left behind. Its listener can only be
-// checked to be a function.
+  matches(value: unknown): value is F {
+    return typeof value === "function" && value.length === this.arity;
+  }
+}
+
+// Something that can put the page back.
+export class RestorableGuard implements Guard<Restorable> {
+  matches(value: unknown): value is Restorable {
+    return isFields(value) && isMethod(value.restore);
+  }
+}
+
+// What an earlier copy of the script left behind, checked field by field.
 export class InstalledGuard<L> implements Guard<Installed<L>> {
+  constructor(
+    private readonly listener: Guard<L>,
+    private readonly controller: Guard<Restorable>,
+  ) {}
+
   matches(value: unknown): value is Installed<L> {
     return isFields(value) && this.holds(value);
   }
 
   private holds(value: Record<string, unknown>): boolean {
-    return isMethod(value.listener) && hasRestore(value.controller);
+    return (
+      this.listener.matches(value.listener) &&
+      this.controller.matches(value.controller)
+    );
   }
 }
