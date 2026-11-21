@@ -1,5 +1,5 @@
 import { SCROLLING_OVERFLOW } from "./css";
-import type { PageElement, PageElements } from "./page-elements";
+import type { PageElement, PageElements, Tall } from "./page-elements";
 import type { Scroller, ScrollerFactory, ScrollerSource } from "./scroller";
 import type { Viewport } from "./viewport";
 
@@ -8,7 +8,7 @@ import type { Viewport } from "./viewport";
 export class ScrollerFinder implements ScrollerSource {
   constructor(
     private readonly window: Viewport,
-    private readonly root: PageElement,
+    private readonly root: Tall,
     private readonly elements: PageElements,
     private readonly scrollers: ScrollerFactory,
   ) {}

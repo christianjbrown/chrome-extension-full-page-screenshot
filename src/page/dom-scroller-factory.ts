@@ -1,5 +1,5 @@
 import { ElementScroller } from "./element-scroller";
-import type { PageElement } from "./page-elements";
+import type { PageElement, ScrollingRoot } from "./page-elements";
 import type { Scroller, ScrollerFactory } from "./scroller";
 import { WindowScroller, type WindowLike } from "./window-scroller";
 
@@ -7,7 +7,7 @@ import { WindowScroller, type WindowLike } from "./window-scroller";
 export class DomScrollerFactory implements ScrollerFactory {
   constructor(
     private readonly window: WindowLike,
-    private readonly root: PageElement,
+    private readonly root: ScrollingRoot,
   ) {}
 
   forWindow(): Scroller {

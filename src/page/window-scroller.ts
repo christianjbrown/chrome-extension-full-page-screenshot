@@ -1,5 +1,5 @@
 import type { Styled } from "./inline-styles";
-import type { PageElement } from "./page-elements";
+import type { ScrollingRoot } from "./page-elements";
 import type { ScrollFrame, Scroller } from "./scroller";
 import type { Viewport } from "./viewport";
 
@@ -12,7 +12,7 @@ export interface WindowLike extends Viewport {
 export class WindowScroller implements Scroller {
   constructor(
     private readonly window: WindowLike,
-    private readonly root: PageElement,
+    private readonly root: ScrollingRoot,
   ) {}
 
   get styled(): Styled {
