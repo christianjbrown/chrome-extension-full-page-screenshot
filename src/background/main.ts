@@ -1,7 +1,7 @@
 // The service worker: builds the object graph and connects it to Chrome's events.
 import { CommandRouter } from "../shared/command-router";
 import { OwnContextFilter } from "../shared/own-context-filter";
-import { backgroundGuards } from "../shared/message-guards";
+import { everyCommandOnce } from "../shared/every-command-once";
 import {
   TARGETS,
   type BackgroundMessage,
@@ -19,6 +19,7 @@ import { TRANSLATIONS } from "./chrome-error-translations";
 import { ChromeErrorExplainer } from "./chrome-errors";
 import { ClickScheme } from "./click-scheme";
 import { BACKGROUND_CONFIG } from "./config";
+import { DeviceSchemeCommand } from "./device-scheme-command";
 import { DownloadCompletion } from "./download-completion";
 import { DownloadSaver } from "./download-saver";
 import { OFFSCREEN_DOCUMENT_PATH, PAGE_SCRIPT } from "./entries";
@@ -84,8 +85,7 @@ const stitcher = new OffscreenStitcher(
   replies,
 );
 const router = new CommandRouter<BackgroundMessage>(
-  { scheme: (message) => toolbarScheme.deviceIs(message.scheme) },
-  backgroundGuards,
+  everyCommandOnce<BackgroundMessage>()(new DeviceSchemeCommand(toolbarScheme)),
   new OwnContextFilter(chrome.runtime.id, TARGETS.background),
   new SettledResponder(),
 );

@@ -1,4 +1,6 @@
+import type { Command } from "../../src/shared/command";
 import { CommandRouter } from "../../src/shared/command-router";
+import { everyCommandOnce } from "../../src/shared/every-command-once";
 import { OwnContextFilter } from "../../src/shared/own-context-filter";
 import { ReplyUnwrapper } from "../../src/shared/reply-unwrapper";
 import { SettledResponder } from "../../src/shared/settled-responder";
@@ -56,23 +58,59 @@ type TestMessage =
   | { target: "here"; type: "double"; n: number }
   | { target: "here"; type: "fail" };
 
+type Double = Extract<TestMessage, { type: "double" }>;
+type Fail = Extract<TestMessage, { type: "fail" }>;
+
+class DoubleCommand implements Command<TestMessage, "double"> {
+  readonly type = "double";
+
+  accepts(message: unknown): message is Double {
+    return typeof (message as { n?: unknown }).n === "number";
+  }
+
+  handle(message: Double): Promise<number> {
+    return Promise.resolve(message.n * 2);
+  }
+}
+
+class FailCommand implements Command<TestMessage, "fail"> {
+  readonly type = "fail";
+
+  accepts(_message: unknown): _message is Fail {
+    return true;
+  }
+
+  handle(): Promise<never> {
+    return Promise.reject(new Error("failed"));
+  }
+}
+
 const ME = { id: "me" };
 
 function router() {
   return new CommandRouter<TestMessage>(
-    {
-      double: (message) => Promise.resolve(message.n * 2),
-      fail: () => Promise.reject(new Error("failed")),
-    },
-    {
-      double: (message): message is TestMessage & { type: "double" } =>
-        typeof (message as { n?: unknown }).n === "number",
-      fail: (_message): _message is TestMessage & { type: "fail" } => true,
-    },
+    everyCommandOnce<TestMessage>()(new DoubleCommand(), new FailCommand()),
     new OwnContextFilter("me", "here"),
     new SettledResponder(),
   );
 }
+
+describe("everyCommandOnce", () => {
+  it("lists the commands when every type has exactly one", () => {
+    const commands = [new DoubleCommand(), new FailCommand()] as const;
+
+    expect(everyCommandOnce<TestMessage>()(...commands)).toEqual(commands);
+  });
+
+  it("does not compile with a type left out or handled twice", () => {
+    const list = everyCommandOnce<TestMessage>();
+
+    // @ts-expect-error The fail message has no command.
+    list(new DoubleCommand());
+    // @ts-expect-error The double message has two commands.
+    list(new DoubleCommand(), new FailCommand(), new DoubleCommand());
+  });
+});
 
 describe("CommandRouter", () => {
   it("runs the handler and answers with its value", async () => {

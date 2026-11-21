@@ -3,7 +3,7 @@
 // reinstaller keeps from piling up listeners.
 import { CommandRouter } from "../shared/command-router";
 import { OwnContextFilter } from "../shared/own-context-filter";
-import { pageGuards } from "../shared/message-guards";
+import { everyCommandOnce } from "../shared/every-command-once";
 import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
 import { SettledResponder } from "../shared/settled-responder";
 import { CaptureScrollStyles } from "./capture-scroll-styles";
@@ -14,7 +14,10 @@ import { LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
 import { DomElements } from "./dom-elements";
 import type { PageElement } from "./page-elements";
+import { PrepareCommand } from "./prepare-command";
 import { Reinstaller, type Installed } from "./reinstaller";
+import { RestoreCommand } from "./restore-command";
+import { ScrollCommand } from "./scroll-command";
 import { ScrollerFinder } from "./scroller-finder";
 import { DomScrollerFactory } from "./dom-scroller-factory";
 import { FrameSettler } from "./frame-settler";
@@ -78,12 +81,11 @@ const controller = new PageController({
   viewport: window,
 });
 const router = new CommandRouter<PageMessage>(
-  {
-    prepare: () => controller.prepare(),
-    scroll: (message) => controller.scrollTo(message.y, message.hideFixed),
-    restore: () => controller.restore(),
-  },
-  pageGuards,
+  everyCommandOnce<PageMessage>()(
+    new PrepareCommand(controller),
+    new ScrollCommand(controller),
+    new RestoreCommand(controller),
+  ),
   new OwnContextFilter(chrome.runtime.id, TARGETS.page),
   new SettledResponder(),
 );

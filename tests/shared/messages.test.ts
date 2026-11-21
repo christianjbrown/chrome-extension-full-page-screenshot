@@ -1,5 +1,4 @@
 import { errorMessage } from "../../src/shared/error-message";
-import { backgroundGuards } from "../../src/shared/message-guards";
 import { isMessageFor } from "../../src/shared/messages";
 import { RuntimeMessenger } from "../../src/shared/runtime-messenger";
 
@@ -38,15 +37,5 @@ describe("RuntimeMessenger", () => {
 
     await expect(messenger.send({ hello: "there" })).resolves.toBe("reply");
     expect(sendMessage).toHaveBeenCalledWith({ hello: "there" });
-  });
-});
-
-describe("backgroundGuards", () => {
-  it.each(["light", "dark"])("accepts a %s colour scheme", (scheme) => {
-    expect(backgroundGuards.scheme({ scheme })).toBe(true);
-  });
-
-  it.each(["sepia", 7, undefined])("refuses a %s colour scheme", (scheme) => {
-    expect(backgroundGuards.scheme({ scheme })).toBe(false);
   });
 });

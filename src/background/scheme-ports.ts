@@ -25,6 +25,11 @@ export interface SchemeReader {
   read(tabId: number): Promise<ColourScheme | undefined>;
 }
 
+// Hears which scheme the device is in.
+export interface DeviceSchemeSink {
+  deviceIs(scheme: ColourScheme): Promise<void>;
+}
+
 // Hears which scheme a tab showed.
 export interface TabSchemeSink {
   tabShows(scheme: ColourScheme): Promise<void>;
