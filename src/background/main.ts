@@ -16,8 +16,13 @@ import { CapturableTabs } from "./capturable-tabs";
 import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
 import { CAPTURE_SPACING_MS } from "./capture-quota";
-import { TRANSLATIONS } from "./chrome-error-translations";
 import { ChromeErrorExplainer } from "./chrome-errors";
+import {
+  LeftTabRefusal,
+  LocalFileRefusal,
+  OwnPageRefusal,
+  WebStoreRefusal,
+} from "./chrome-refusals";
 import { ClickScheme } from "./click-scheme";
 import { BACKGROUND_CONFIG } from "./config";
 import { DeviceSchemeCommand } from "./device-scheme-command";
@@ -132,7 +137,12 @@ const controller = new ScreenshotController({
     new DownloadCompletion(chrome.downloads.onChanged),
   ),
   indicator,
-  errors: new ChromeErrorExplainer(TRANSLATIONS),
+  errors: new ChromeErrorExplainer([
+    new OwnPageRefusal(),
+    new WebStoreRefusal(),
+    new LocalFileRefusal(),
+    new LeftTabRefusal(),
+  ]),
 });
 
 chrome.action.onClicked.addListener((tab) => {

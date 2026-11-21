@@ -1,5 +1,5 @@
 import { errorMessage } from "../shared/error-message";
-import type { Translation } from "./chrome-error-translations";
+import type { Translation } from "./translation";
 import type { ErrorExplainer } from "./error-explainer";
 
 // Says what Chrome's terser refusals mean for the person who clicked.
@@ -12,7 +12,8 @@ export class ChromeErrorExplainer implements ErrorExplainer {
   }
 
   private translationOf(message: string): string | undefined {
-    return this.translations.find(({ pattern }) => pattern.test(message))
-      ?.message;
+    return this.translations.find((translation) =>
+      translation.explains(message),
+    )?.message;
   }
 }
