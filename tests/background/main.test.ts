@@ -185,16 +185,50 @@ describe("service worker", () => {
     expect(chrome.action.setBadgeText).toHaveBeenLastCalledWith({ text: "" });
   });
 
-  it("leaves the name of a download it did not start to Chrome", async () => {
+  it("only listens for download names while saving one of its own", async () => {
     const chrome = await load();
-    const suggest = vi.fn();
+    const listening: number[] = [];
+    const foreign = vi.fn();
+    chrome.downloads.download.mockImplementation((options: { url: string }) => {
+      listening.push(chrome.downloads.onDeterminingFilename.listeners.length);
+      // Someone else's download, arriving while the listener is there.
+      chrome.downloads.onDeterminingFilename.fire(
+        { url: "https://example.com/file.zip" },
+        foreign,
+      );
+      chrome.downloads.onDeterminingFilename.fire(
+        { url: options.url },
+        vi.fn(),
+      );
+      setTimeout(() => {
+        chrome.downloads.onChanged.fire({
+          id: 3,
+          state: { current: "complete" },
+        });
+      });
+      return Promise.resolve(3);
+    });
+    expect(chrome.downloads.onDeterminingFilename.listeners).toHaveLength(0);
 
-    chrome.downloads.onDeterminingFilename.fire(
-      { url: "https://example.com/file.zip" },
-      suggest,
+    chrome.action.onClicked.fire({
+      id: 4,
+      windowId: 2,
+      title: "Demo Page",
+      url: "https://example.com/",
+    });
+
+    await vi.waitFor(
+      () => {
+        expect(chrome.offscreen.closeDocument).toHaveBeenCalled();
+      },
+      { timeout: 3000 },
     );
-
-    expect(suggest).toHaveBeenCalledWith();
+    expect(listening).toEqual([1]);
+    expect(foreign).toHaveBeenCalledWith({
+      filename: "",
+      conflictAction: "uniquify",
+    });
+    expect(chrome.downloads.onDeterminingFilename.listeners).toHaveLength(0);
   });
 
   it("opens the offscreen document as soon as it starts, and once only", async () => {

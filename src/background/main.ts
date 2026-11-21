@@ -20,6 +20,7 @@ import { DownloadCompletion } from "./download-completion";
 import { DownloadSaver } from "./download-saver";
 import { OFFSCREEN_DOCUMENT_PATH, PAGE_SCRIPT } from "./entries";
 import { ClaimedFilenames } from "./filename-claims";
+import { FilenameListening } from "./filename-listening";
 import { KebabSlugger, LocalTimeStamper } from "./file-name-parts";
 import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
@@ -40,7 +41,16 @@ import { ThrottledCapture, TimerSleeper } from "./visible-tab-capture";
 
 const clock = new SystemClock();
 const replies = new ReplyUnwrapper();
-const filenames = new ClaimedFilenames();
+// Chrome only asks this extension to name downloads while one of its own is
+// waiting for a name: each claim holds the listener and naming it releases it.
+const filenames: ClaimedFilenames = new ClaimedFilenames(
+  new FilenameListening(
+    chrome.downloads.onDeterminingFilename,
+    (item: chrome.downloads.DownloadItem, suggest) => {
+      filenames.determine(item, suggest);
+    },
+  ),
+);
 const indicator = new ToolbarIndicator(chrome.action);
 // The device's scheme comes from the offscreen document and Chrome's own from a
 // clicked tab, so the icon is worked out from both.
@@ -122,10 +132,6 @@ chrome.action.onClicked.addListener((tab) => {
   // Beside the capture, never part of it: a failed read must not stop a
   // screenshot, and the capture does not wait for it.
   void clickScheme.clicked(tab).catch(() => undefined);
-});
-// Registered at the top so that Chrome finds it when the service worker wakes.
-chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
-  filenames.determine(item, suggest);
 });
 chrome.runtime.onMessage.addListener(
   (message: unknown, sender, sendResponse: (reply: Reply<unknown>) => void) =>
