@@ -8,6 +8,9 @@ import type { SlicePainter } from "./stitch-commands";
 type Slice = typeof OFFSCREEN_TYPES.slice;
 type SliceMessage = MessageOf<OffscreenMessage, Slice>;
 
+const areRects = (value: unknown): boolean =>
+  Array.isArray(value) && value.every(isRect);
+
 // Paints one capture into the picture.
 export class SliceCommand implements Command<OffscreenMessage, Slice> {
   readonly type = OFFSCREEN_TYPES.slice;
@@ -16,12 +19,12 @@ export class SliceCommand implements Command<OffscreenMessage, Slice> {
 
   accepts(message: unknown): message is SliceMessage {
     const fields = message as Fields;
-    return (
-      typeof fields.dataUrl === "string" &&
-      isFiniteNumber(fields.scroll) &&
-      Array.isArray(fields.rects) &&
-      fields.rects.every(isRect)
-    );
+    return typeof fields.dataUrl === "string" && this.placed(fields);
+  }
+
+  // Where the capture was taken from, and which parts of it to paint.
+  private placed(fields: Fields): boolean {
+    return isFiniteNumber(fields.scroll) && areRects(fields.rects);
   }
 
   handle(message: SliceMessage): Promise<void> {

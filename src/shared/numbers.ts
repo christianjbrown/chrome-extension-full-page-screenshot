@@ -6,3 +6,7 @@ export function isFiniteNumber(value: unknown): value is number {
 export function isPositiveNumber(value: unknown): value is number {
   return isFiniteNumber(value) && value > 0;
 }
+
+export function isNonNegativeNumber(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= 0;
+}
