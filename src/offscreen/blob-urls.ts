@@ -1,6 +1,4 @@
-export interface ObjectUrls {
-  create(blob: Blob): string;
-}
+import type { ObjectUrls } from "./object-urls";
 
 export interface UrlFactory {
   createObjectURL(blob: Blob): string;

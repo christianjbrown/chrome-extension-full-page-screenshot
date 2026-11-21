@@ -1,4 +1,4 @@
-import type { Placing } from "./device-geometry";
+import type { Placing } from "./geometry";
 import type { ImageDecoder } from "./image-decoder";
 import type { PageSize, Picture, PictureSizer } from "./picture";
 import type { SheetWriter } from "./sheet-writer";

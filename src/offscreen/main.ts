@@ -18,14 +18,14 @@ import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { BlobUrls } from "./blob-urls";
 import { MAX_PART_PIXELS, MAX_PART_SIDE } from "./canvas-limits";
 import { OFFSCREEN_CONFIG } from "./config";
-import { DataUrlDecoder } from "./image-decoder";
+import { DataUrlDecoder } from "./data-url-decoder";
 import { DeviceGeometry } from "./device-geometry";
-import { CanvasLimitCutter } from "./part-layout";
-import { CutPictureSizer } from "./picture";
+import { CanvasLimitCutter } from "./canvas-limit-cutter";
+import { CutPictureSizer } from "./cut-picture-sizer";
 import { SchemeReporter } from "./scheme-reporter";
-import { PngSheetWriter } from "./sheet-writer";
+import { PngSheetWriter } from "./png-sheet-writer";
 import { Stitcher } from "./stitcher";
-import { OffscreenCanvasSurfaces } from "./surfaces";
+import { OffscreenCanvasSurfaces } from "./canvas-surfaces";
 
 const geometry = new DeviceGeometry();
 const stitcher = new Stitcher({

@@ -1,7 +1,7 @@
 import {
   OffscreenCanvasSurfaces,
   type Canvas2d,
-} from "../../src/offscreen/surfaces";
+} from "../../src/offscreen/canvas-surfaces";
 import { fakeBitmap } from "./fakes";
 
 function canvasClass(context: Canvas2d | null) {

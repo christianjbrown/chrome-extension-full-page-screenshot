@@ -1,10 +1,11 @@
 import { BlobUrls } from "../../src/offscreen/blob-urls";
-import { DataUrlDecoder } from "../../src/offscreen/image-decoder";
-import { CanvasLimitCutter } from "../../src/offscreen/part-layout";
+import {
+  MAX_PART_PIXELS,
+  MAX_PART_SIDE,
+} from "../../src/offscreen/canvas-limits";
+import { DataUrlDecoder } from "../../src/offscreen/data-url-decoder";
+import { CanvasLimitCutter } from "../../src/offscreen/canvas-limit-cutter";
 import { fakeBitmap } from "./fakes";
-
-const MAX_PART_SIDE = 16384;
-const MAX_PART_PIXELS = 64 * 1024 * 1024;
 
 describe("DataUrlDecoder", () => {
   it("fetches the data URL and decodes it to a bitmap", async () => {
