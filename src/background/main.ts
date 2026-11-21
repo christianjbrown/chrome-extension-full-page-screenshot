@@ -11,6 +11,7 @@ import {
 import { ReplyUnwrapper } from "../shared/reply-unwrapper";
 import { SettledResponder } from "../shared/settled-responder";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
+import { SerialQueue } from "../shared/serial-queue";
 import { CapturableTabs } from "./capturable-tabs";
 import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
@@ -63,6 +64,7 @@ const indicator = new ToolbarIndicator(chrome.action);
 const toolbarScheme = new ToolbarScheme(
   new SchemeStore(chrome.storage.local, UNKNOWN_SCHEME),
   new ToolbarIcon(chrome.action),
+  new SerialQueue(),
   SCHEME_POLICY,
 );
 const clickScheme = new ClickScheme(
@@ -75,6 +77,7 @@ const clickScheme = new ClickScheme(
 const offscreenPage = new OffscreenPage(
   chrome.offscreen,
   chrome.runtime,
+  new SerialQueue(),
   OFFSCREEN_DOCUMENT_PATH,
 );
 // A capture renews the document so that its blob URLs die, and the watcher
