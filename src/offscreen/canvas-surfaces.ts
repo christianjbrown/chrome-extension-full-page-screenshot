@@ -1,9 +1,10 @@
 import { PNG_TYPE } from "../shared/png";
 import type { Bitmap, Box, Surface, SurfaceFactory } from "./surfaces";
 
-export interface Canvas2d {
+// The part of a 2D context that paints, for the kind of image it is given.
+export interface Canvas2d<I> {
   drawImage(
-    image: never,
+    image: I,
     sx: number,
     sy: number,
     sw: number,
@@ -15,32 +16,32 @@ export interface Canvas2d {
   ): void;
 }
 
-interface CanvasLike {
+interface CanvasLike<I> {
   width: number;
   height: number;
-  getContext(kind: typeof CONTEXT_2D): Canvas2d | null;
+  getContext(kind: typeof CONTEXT_2D): Canvas2d<I> | null;
   convertToBlob(options: { type: string }): Promise<Blob>;
 }
 
-export type CanvasConstructor = new (
+export type CanvasConstructor<I> = new (
   width: number,
   height: number,
-) => CanvasLike;
+) => CanvasLike<I>;
 
 const CONTEXT_2D = "2d";
 // A canvas shrunk to nothing gives its memory back at once.
 const RELEASED = 0;
 
-class CanvasSurface implements Surface {
+class CanvasSurface<I extends Bitmap> implements Surface<I> {
   constructor(
-    private readonly canvas: CanvasLike,
-    private readonly context: Canvas2d,
+    private readonly canvas: CanvasLike<I>,
+    private readonly context: Canvas2d<I>,
   ) {}
 
-  draw(image: Bitmap, source: Box, targetY: number): void {
+  draw(image: I, source: Box, targetY: number): void {
     const { x, y, width, height } = source;
     this.context.drawImage(
-      image as never,
+      image,
       x,
       y,
       width,
@@ -63,10 +64,12 @@ class CanvasSurface implements Surface {
 const tooBig = (width: number, height: number): string =>
   `Chrome could not make a ${String(width)} by ${String(height)} image`;
 
-export class OffscreenCanvasSurfaces implements SurfaceFactory {
-  constructor(private readonly Canvas: CanvasConstructor) {}
+export class OffscreenCanvasSurfaces<
+  I extends Bitmap,
+> implements SurfaceFactory<I> {
+  constructor(private readonly Canvas: CanvasConstructor<I>) {}
 
-  create(width: number, height: number): Surface {
+  create(width: number, height: number): Surface<I> {
     const canvas = new this.Canvas(width, height);
     const context = canvas.getContext(CONTEXT_2D);
     if (context === null) {

@@ -13,14 +13,15 @@ export interface Box {
   height: number;
 }
 
-// One output image being painted, in device pixels.
-export interface Surface {
+// One output image being painted, in device pixels. It paints the kind of
+// image the decoder makes, so the two always agree on what an image is.
+export interface Surface<I extends Bitmap> {
   // Copies a box of the image to the same columns, at targetY.
-  draw(image: Bitmap, source: Box, targetY: number): void;
+  draw(image: I, source: Box, targetY: number): void;
   // The finished PNG. The surface's memory is given back afterwards.
   toPng(): Promise<Blob>;
 }
 
-export interface SurfaceFactory {
-  create(width: number, height: number): Surface;
+export interface SurfaceFactory<I extends Bitmap> {
+  create(width: number, height: number): Surface<I>;
 }

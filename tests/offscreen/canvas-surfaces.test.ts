@@ -2,9 +2,10 @@ import {
   OffscreenCanvasSurfaces,
   type Canvas2d,
 } from "../../src/offscreen/canvas-surfaces";
+import type { Bitmap } from "../../src/offscreen/surfaces";
 import { fakeBitmap } from "./fakes";
 
-function canvasClass(context: Canvas2d | null) {
+function canvasClass(context: Canvas2d<Bitmap> | null) {
   const made: { width: number; height: number }[] = [];
   const blob = new Blob(["png"]);
   class Canvas {

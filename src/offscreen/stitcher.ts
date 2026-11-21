@@ -21,22 +21,26 @@ const isPositiveSize = (width: number, height: number): boolean =>
 
 const hasUrl = (url: string | undefined): url is string => url !== undefined;
 
-export interface StitcherDependencies {
-  decoder: ImageDecoder;
+// The decoder and the surfaces agree on the kind of image, so what one makes
+// the other can paint.
+export interface StitcherDependencies<I extends Bitmap> {
+  decoder: ImageDecoder<I>;
   sizer: PictureSizer;
   placing: Placing;
-  surfaces: SurfaceFactory;
+  surfaces: SurfaceFactory<I>;
   writer: SheetWriter;
 }
 
 // Paints the slices into the output a part at a time. Slices arrive top to
 // bottom, so each part is written out as soon as the slices move past it, and
 // at most two parts are ever held in memory.
-export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
+export class Stitcher<I extends Bitmap>
+  implements StitchStarter, SlicePainter, StitchFinisher
+{
   private page: PageSize = { width: 0, height: 0 };
-  private picture: Picture | undefined;
+  private picture: Picture<I> | undefined;
 
-  constructor(private readonly deps: StitcherDependencies) {}
+  constructor(private readonly deps: StitcherDependencies<I>) {}
 
   begin(width: number, height: number): Promise<void> {
     if (!isPositiveSize(width, height)) {
@@ -66,17 +70,17 @@ export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
   }
 
   // The first capture sets the picture's size.
-  private pictureFor(image: Bitmap): Picture {
+  private pictureFor(image: I): Picture<I> {
     this.picture ??= this.deps.sizer.size(image.width, this.page);
     return this.picture;
   }
 
   // Nothing painted yet means nothing to write.
-  private sheets(): Sheet[] {
+  private sheets(): Sheet<I>[] {
     return this.picture === undefined ? [] : this.picture.sheets;
   }
 
-  private async writeAll(sheets: Sheet[]): Promise<string[]> {
+  private async writeAll(sheets: Sheet<I>[]): Promise<string[]> {
     for (const sheet of sheets) {
       await this.deps.writer.writeOut(sheet);
     }
@@ -84,8 +88,8 @@ export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
   }
 
   private async paintAll(
-    picture: Picture,
-    image: Bitmap,
+    picture: Picture<I>,
+    image: I,
     rects: Rect[],
     scroll: number,
   ): Promise<void> {
@@ -95,8 +99,8 @@ export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
   }
 
   private async paint(
-    picture: Picture,
-    image: Bitmap,
+    picture: Picture<I>,
+    image: I,
     rect: Rect,
     scroll: number,
   ): Promise<void> {
@@ -113,9 +117,9 @@ export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
 
   // A sheet the slices have moved past is finished, so it is written out.
   private async paintSheet(
-    picture: Picture,
-    sheet: Sheet,
-    image: Bitmap,
+    picture: Picture<I>,
+    sheet: Sheet<I>,
+    image: I,
     placement: Placement,
   ): Promise<void> {
     if (sheet.top + sheet.height <= placement.top) {
@@ -126,9 +130,9 @@ export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
   }
 
   private drawIfCovered(
-    picture: Picture,
-    sheet: Sheet,
-    image: Bitmap,
+    picture: Picture<I>,
+    sheet: Sheet<I>,
+    image: I,
     placement: Placement,
   ): void {
     if (sheet.top < placement.top + placement.source.height) {
@@ -138,9 +142,9 @@ export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
 
   // A sheet gets its surface when the first slice reaches it.
   private draw(
-    picture: Picture,
-    sheet: Sheet,
-    image: Bitmap,
+    picture: Picture<I>,
+    sheet: Sheet<I>,
+    image: I,
     { source, top }: Placement,
   ): void {
     sheet.surface ??= this.deps.surfaces.create(picture.width, sheet.height);
