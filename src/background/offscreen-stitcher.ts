@@ -5,7 +5,7 @@ import {
   type OffscreenMessage,
   type Rect,
 } from "../shared/messages";
-import type { HiddenDocument } from "./offscreen-page";
+import type { RenewableDocument } from "./hidden-document";
 import type { ReplyReader } from "../shared/replies";
 
 // Who failed to answer, in an error.
@@ -23,11 +23,11 @@ export interface StitchLifecycle {
   close(): Promise<void>;
 }
 
-// The blob URLs the document hands out die with it, so it is closed once the
+// The blob URLs the document hands out die with it, so it is renewed once the
 // files are saved. A capture uses the document if it is already open.
 export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   constructor(
-    private readonly document: HiddenDocument,
+    private readonly document: RenewableDocument,
     private readonly messages: MessageSender<OffscreenMessage>,
     private readonly replies: ReplyReader,
   ) {}
@@ -60,7 +60,7 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   }
 
   close(): Promise<void> {
-    return this.document.close();
+    return this.document.renew();
   }
 
   private async ask<T>(message: OffscreenMessage): Promise<T> {

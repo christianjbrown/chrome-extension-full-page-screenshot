@@ -28,7 +28,7 @@ import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
 import { PageClient } from "./page-client";
 import { FinitePageValidator } from "./page-validator";
-import { ReopeningDocument } from "./reopening-document";
+import { RenewingDocument } from "./renewing-document";
 import { TimestampedNamer } from "./screenshot-namer";
 import { SCHEME_POLICY, UNKNOWN_SCHEME } from "./scheme-state";
 import { SchemeStore } from "./scheme-store";
@@ -72,10 +72,10 @@ const offscreenPage = new OffscreenPage(
   chrome.runtime,
   OFFSCREEN_DOCUMENT_PATH,
 );
-// A capture closes the document so that its blob URLs die, and the watcher has
-// to carry on afterwards.
+// A capture renews the document so that its blob URLs die, and the watcher
+// carries on in the new one.
 const stitcher = new OffscreenStitcher(
-  new ReopeningDocument(offscreenPage),
+  new RenewingDocument(offscreenPage),
   new RuntimeMessenger<OffscreenMessage>(chrome.runtime),
   replies,
 );

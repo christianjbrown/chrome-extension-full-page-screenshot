@@ -1,8 +1,4 @@
-// Something that can be opened and closed, and does not mind being asked twice.
-export interface HiddenDocument {
-  open(): Promise<void>;
-  close(): Promise<void>;
-}
+import type { HiddenDocument } from "./hidden-document";
 
 const OFFSCREEN_REASONS = ["BLOBS", "MATCH_MEDIA"] as const;
 const OFFSCREEN_DOCUMENT = "OFFSCREEN_DOCUMENT";
