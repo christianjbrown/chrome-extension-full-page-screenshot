@@ -1,19 +1,17 @@
-import type { Command, MessageOf } from "../shared/command";
+import type { Command } from "../shared/command";
 import type { Fields } from "../shared/fields";
 import { isRect } from "../shared/message-fields";
-import { OFFSCREEN_TYPES, type OffscreenMessage } from "../shared/messages";
+import type { OffscreenMessage } from "../shared/messages";
 import { isFiniteNumber } from "../shared/numbers";
+import { SLICE, type SliceMessage } from "../shared/slice-message";
 import type { SlicePainter } from "./stitch-commands";
-
-type Slice = typeof OFFSCREEN_TYPES.slice;
-type SliceMessage = MessageOf<OffscreenMessage, Slice>;
 
 const areRects = (value: unknown): boolean =>
   Array.isArray(value) && value.every(isRect);
 
 // Paints one capture into the picture.
-export class SliceCommand implements Command<OffscreenMessage, Slice> {
-  readonly type = OFFSCREEN_TYPES.slice;
+export class SliceCommand implements Command<OffscreenMessage, typeof SLICE> {
+  readonly type = SLICE;
 
   constructor(private readonly stitcher: SlicePainter) {}
 

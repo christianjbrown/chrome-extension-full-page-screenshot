@@ -1,9 +1,9 @@
-import {
-  OFFSCREEN_TYPES,
-  TARGETS,
-  type OffscreenMessage,
-  type Rect,
-} from "../shared/messages";
+import { BEGIN } from "../shared/begin-message";
+import { FINISH } from "../shared/finish-message";
+import type { OffscreenMessage } from "../shared/messages";
+import type { Rect } from "../shared/rect";
+import { SLICE } from "../shared/slice-message";
+import { TARGETS } from "../shared/targets";
 import type { MessageSender } from "../shared/message-sender";
 import type { RenewableDocument } from "./hidden-document";
 import type { StitchLifecycle, StitchSession } from "./stitch-session";
@@ -25,7 +25,7 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
     await this.document.open();
     await this.ask({
       target: TARGETS.offscreen,
-      type: OFFSCREEN_TYPES.begin,
+      type: BEGIN,
       width,
       height,
     });
@@ -34,7 +34,7 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   add(dataUrl: string, rects: Rect[], scroll: number): Promise<void> {
     return this.ask({
       target: TARGETS.offscreen,
-      type: OFFSCREEN_TYPES.slice,
+      type: SLICE,
       dataUrl,
       rects,
       scroll,
@@ -44,7 +44,7 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   finish(): Promise<string[]> {
     return this.ask({
       target: TARGETS.offscreen,
-      type: OFFSCREEN_TYPES.finish,
+      type: FINISH,
     });
   }
 

@@ -1,13 +1,11 @@
-import type { Command, MessageOf } from "../shared/command";
-import { OFFSCREEN_TYPES, type OffscreenMessage } from "../shared/messages";
+import type { Command } from "../shared/command";
+import { FINISH, type FinishMessage } from "../shared/finish-message";
+import type { OffscreenMessage } from "../shared/messages";
 import type { StitchFinisher } from "./stitch-commands";
 
-type Finish = typeof OFFSCREEN_TYPES.finish;
-type FinishMessage = MessageOf<OffscreenMessage, Finish>;
-
 // Writes out the picture and answers with its files.
-export class FinishCommand implements Command<OffscreenMessage, Finish> {
-  readonly type = OFFSCREEN_TYPES.finish;
+export class FinishCommand implements Command<OffscreenMessage, typeof FINISH> {
+  readonly type = FINISH;
 
   constructor(private readonly stitcher: StitchFinisher) {}
 

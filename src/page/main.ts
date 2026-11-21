@@ -4,7 +4,8 @@
 import { CommandRouter } from "../shared/command-router";
 import { OwnContextFilter } from "../shared/own-context-filter";
 import { everyCommandOnce } from "../shared/every-command-once";
-import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
+import type { PageMessage, Reply } from "../shared/messages";
+import { TARGETS } from "../shared/targets";
 import { SettledResponder } from "../shared/settled-responder";
 import { CaptureScrollStyles } from "./capture-scroll-styles";
 import { PAGE_CONFIG } from "./config";

@@ -7,7 +7,7 @@ import type {
   StitchFinisher,
   StitchStarter,
 } from "./stitch-commands";
-import type { Rect } from "../shared/messages";
+import type { Rect } from "../shared/rect";
 import { isFiniteNumber, isPositiveNumber } from "../shared/numbers";
 import type { Bitmap, SurfaceFactory } from "./surfaces";
 

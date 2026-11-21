@@ -1,13 +1,11 @@
-import type { Command, MessageOf } from "../shared/command";
-import { PAGE_TYPES, type PageMessage } from "../shared/messages";
+import type { Command } from "../shared/command";
+import type { PageMessage } from "../shared/messages";
+import { RESTORE, type RestoreMessage } from "../shared/restore-message";
 import type { Restorable } from "./restorable";
 
-type Restore = typeof PAGE_TYPES.restore;
-type RestoreMessage = MessageOf<PageMessage, Restore>;
-
 // Puts the page back how the capture found it.
-export class RestoreCommand implements Command<PageMessage, Restore> {
-  readonly type = PAGE_TYPES.restore;
+export class RestoreCommand implements Command<PageMessage, typeof RESTORE> {
+  readonly type = RESTORE;
 
   constructor(private readonly page: Restorable) {}
 

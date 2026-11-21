@@ -1,4 +1,5 @@
-import type { PageLayout, Rect } from "../shared/messages";
+import type { PageLayout } from "../shared/page-layout";
+import type { Rect } from "../shared/rect";
 
 // One scroll position and what to take from the viewport there.
 interface PlannedSlice {

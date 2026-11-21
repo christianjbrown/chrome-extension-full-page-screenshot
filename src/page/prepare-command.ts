@@ -1,17 +1,12 @@
-import type { Command, MessageOf } from "../shared/command";
-import {
-  PAGE_TYPES,
-  type PageLayout,
-  type PageMessage,
-} from "../shared/messages";
+import type { Command } from "../shared/command";
+import type { PageMessage } from "../shared/messages";
+import type { PageLayout } from "../shared/page-layout";
+import { PREPARE, type PrepareMessage } from "../shared/prepare-message";
 import type { PagePreparer } from "./page-commands";
 
-type Prepare = typeof PAGE_TYPES.prepare;
-type PrepareMessage = MessageOf<PageMessage, Prepare>;
-
 // Readies the page for a capture and answers with its layout.
-export class PrepareCommand implements Command<PageMessage, Prepare> {
-  readonly type = PAGE_TYPES.prepare;
+export class PrepareCommand implements Command<PageMessage, typeof PREPARE> {
+  readonly type = PREPARE;
 
   constructor(private readonly page: PagePreparer) {}
 

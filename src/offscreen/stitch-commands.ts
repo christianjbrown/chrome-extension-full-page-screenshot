@@ -1,4 +1,4 @@
-import type { Rect } from "../shared/messages";
+import type { Rect } from "../shared/rect";
 
 // What the service worker asks of the offscreen document, one need at a time.
 export interface StitchStarter {

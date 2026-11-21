@@ -1,15 +1,13 @@
-import type { Command, MessageOf } from "../shared/command";
+import type { Command } from "../shared/command";
 import type { Fields } from "../shared/fields";
-import { PAGE_TYPES, type PageMessage } from "../shared/messages";
+import type { PageMessage } from "../shared/messages";
 import { isFiniteNumber } from "../shared/numbers";
+import { SCROLL, type ScrollMessage } from "../shared/scroll-message";
 import type { PageScroller } from "./page-commands";
 
-type Scroll = typeof PAGE_TYPES.scroll;
-type ScrollMessage = MessageOf<PageMessage, Scroll>;
-
 // Scrolls to the next slice and answers with where the page landed.
-export class ScrollCommand implements Command<PageMessage, Scroll> {
-  readonly type = PAGE_TYPES.scroll;
+export class ScrollCommand implements Command<PageMessage, typeof SCROLL> {
+  readonly type = SCROLL;
 
   constructor(private readonly page: PageScroller) {}
 

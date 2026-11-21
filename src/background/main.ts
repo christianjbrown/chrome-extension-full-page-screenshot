@@ -2,12 +2,12 @@
 import { CommandRouter } from "../shared/command-router";
 import { OwnContextFilter } from "../shared/own-context-filter";
 import { everyCommandOnce } from "../shared/every-command-once";
-import {
-  TARGETS,
-  type BackgroundMessage,
-  type OffscreenMessage,
-  type Reply,
+import type {
+  BackgroundMessage,
+  OffscreenMessage,
+  Reply,
 } from "../shared/messages";
+import { TARGETS } from "../shared/targets";
 import { ReplyUnwrapper } from "../shared/reply-unwrapper";
 import { SettledResponder } from "../shared/settled-responder";
 import { RuntimeMessenger } from "../shared/runtime-messenger";

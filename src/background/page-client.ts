@@ -1,9 +1,9 @@
-import {
-  PAGE_TYPES,
-  TARGETS,
-  type PageLayout,
-  type PageMessage,
-} from "../shared/messages";
+import type { PageMessage } from "../shared/messages";
+import type { PageLayout } from "../shared/page-layout";
+import { PREPARE } from "../shared/prepare-message";
+import { RESTORE } from "../shared/restore-message";
+import { SCROLL } from "../shared/scroll-message";
+import { TARGETS } from "../shared/targets";
 import type { ReplyReader } from "../shared/replies";
 import type { PageDriver } from "./page-driver";
 import type { PageValidator } from "./page-validator";
@@ -43,7 +43,7 @@ export class PageClient implements PageDriver {
 
   async prepare(tabId: number): Promise<PageLayout> {
     return this.deps.validator.layout(
-      await this.ask(tabId, { target: TARGETS.page, type: PAGE_TYPES.prepare }),
+      await this.ask(tabId, { target: TARGETS.page, type: PREPARE }),
     );
   }
 
@@ -55,7 +55,7 @@ export class PageClient implements PageDriver {
     return this.deps.validator.scroll(
       await this.ask(tabId, {
         target: TARGETS.page,
-        type: PAGE_TYPES.scroll,
+        type: SCROLL,
         y,
         hideFixed,
       }),
@@ -63,7 +63,7 @@ export class PageClient implements PageDriver {
   }
 
   async restore(tabId: number): Promise<void> {
-    await this.ask(tabId, { target: TARGETS.page, type: PAGE_TYPES.restore });
+    await this.ask(tabId, { target: TARGETS.page, type: RESTORE });
   }
 
   private async ask(tabId: number, message: PageMessage): Promise<unknown> {

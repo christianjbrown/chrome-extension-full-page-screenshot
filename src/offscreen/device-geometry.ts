@@ -1,4 +1,4 @@
-import type { Rect } from "../shared/messages";
+import type { Rect } from "../shared/rect";
 import type { Placement, Placing, Scaling } from "./geometry";
 
 export class DeviceGeometry implements Scaling, Placing {

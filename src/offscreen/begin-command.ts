@@ -1,15 +1,13 @@
-import type { Command, MessageOf } from "../shared/command";
+import { BEGIN, type BeginMessage } from "../shared/begin-message";
+import type { Command } from "../shared/command";
 import type { Fields } from "../shared/fields";
-import { OFFSCREEN_TYPES, type OffscreenMessage } from "../shared/messages";
+import type { OffscreenMessage } from "../shared/messages";
 import { isFiniteNumber } from "../shared/numbers";
 import type { StitchStarter } from "./stitch-commands";
 
-type Begin = typeof OFFSCREEN_TYPES.begin;
-type BeginMessage = MessageOf<OffscreenMessage, Begin>;
-
 // Starts a new picture of the page's size.
-export class BeginCommand implements Command<OffscreenMessage, Begin> {
-  readonly type = OFFSCREEN_TYPES.begin;
+export class BeginCommand implements Command<OffscreenMessage, typeof BEGIN> {
+  readonly type = BEGIN;
 
   constructor(private readonly stitcher: StitchStarter) {}
 

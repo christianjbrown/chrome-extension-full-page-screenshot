@@ -1,4 +1,4 @@
-import type { PageLayout } from "../shared/messages";
+import type { PageLayout } from "../shared/page-layout";
 import type { Fields } from "../shared/fields";
 import {
   isFiniteNumber,

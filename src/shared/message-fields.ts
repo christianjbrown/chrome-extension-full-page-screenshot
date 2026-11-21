@@ -1,5 +1,5 @@
 import { isFields } from "./fields";
-import type { Rect } from "./messages";
+import type { Rect } from "./rect";
 import { isFiniteNumber } from "./numbers";
 
 const RECT_KEYS = [

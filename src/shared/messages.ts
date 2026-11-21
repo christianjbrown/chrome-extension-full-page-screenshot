@@ -1,84 +1,20 @@
-// Everything the service worker, the page and the offscreen document say to each other.
-import type { ColourScheme } from "./colour-scheme";
+// Everything the service worker, the page and the offscreen document say to
+// each other. Each message is declared in its own module, so a new one is that
+// module and one line here.
+import type { BeginMessage } from "./begin-message";
 import { isFields } from "./fields";
+import type { FinishMessage } from "./finish-message";
+import type { PrepareMessage } from "./prepare-message";
+import type { RestoreMessage } from "./restore-message";
+import type { SchemeMessage } from "./scheme-message";
+import type { ScrollMessage } from "./scroll-message";
+import type { SliceMessage } from "./slice-message";
 
-// Where the page scrolls, in CSS pixels. The frame is the part of the viewport
-// that scrolls: all of it for a normal page, or one inner element's box when
-// the page scrolls inside that instead, as Gmail's message pane does.
-export interface PageLayout {
-  viewportWidth: number;
-  viewportHeight: number;
-  frameTop: number;
-  frameHeight: number;
-  frameLeft: number;
-  frameWidth: number;
-  scrollHeight: number;
-}
+export type PageMessage = PrepareMessage | ScrollMessage | RestoreMessage;
 
-// A box in the viewport, in CSS pixels.
-export interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+export type OffscreenMessage = BeginMessage | SliceMessage | FinishMessage;
 
-// Which context a message is for.
-export const TARGETS = {
-  background: "background",
-  offscreen: "offscreen",
-  page: "page",
-} as const;
-
-// What each context can be asked to do.
-export const PAGE_TYPES = {
-  prepare: "prepare",
-  scroll: "scroll",
-  restore: "restore",
-} as const;
-
-export const OFFSCREEN_TYPES = {
-  begin: "begin",
-  slice: "slice",
-  finish: "finish",
-} as const;
-
-export const BACKGROUND_TYPES = { scheme: "scheme" } as const;
-
-type ToPage = typeof TARGETS.page;
-type ToOffscreen = typeof TARGETS.offscreen;
-
-export type PageMessage =
-  | { target: ToPage; type: typeof PAGE_TYPES.prepare }
-  | {
-      target: ToPage;
-      type: typeof PAGE_TYPES.scroll;
-      y: number;
-      hideFixed: boolean;
-    }
-  | { target: ToPage; type: typeof PAGE_TYPES.restore };
-
-export type OffscreenMessage =
-  | {
-      target: ToOffscreen;
-      type: typeof OFFSCREEN_TYPES.begin;
-      width: number;
-      height: number;
-    }
-  | {
-      target: ToOffscreen;
-      type: typeof OFFSCREEN_TYPES.slice;
-      dataUrl: string;
-      rects: Rect[];
-      scroll: number;
-    }
-  | { target: ToOffscreen; type: typeof OFFSCREEN_TYPES.finish };
-
-export interface BackgroundMessage {
-  target: typeof TARGETS.background;
-  type: typeof BACKGROUND_TYPES.scheme;
-  scheme: ColourScheme;
-}
+export type BackgroundMessage = SchemeMessage;
 
 export type Reply<T> = { ok: true; value: T } | { ok: false; error: string };
 
