@@ -1,9 +1,14 @@
 import { BEGIN, type BeginMessage } from "../shared/begin-message";
 import type { Command } from "../shared/command";
 import type { Fields } from "../shared/fields";
-import type { OffscreenMessage } from "../shared/messages";
+import { isAddressed, type OffscreenMessage } from "../shared/messages";
 import { isFiniteNumber } from "../shared/numbers";
+import { TARGETS } from "../shared/targets";
 import type { StitchStarter } from "./stitch-commands";
+
+// The page's size.
+const carries = (fields: Fields): boolean =>
+  isFiniteNumber(fields.width) && isFiniteNumber(fields.height);
 
 // Starts a new picture of the page's size.
 export class BeginCommand implements Command<OffscreenMessage, typeof BEGIN> {
@@ -12,8 +17,7 @@ export class BeginCommand implements Command<OffscreenMessage, typeof BEGIN> {
   constructor(private readonly stitcher: StitchStarter) {}
 
   accepts(message: unknown): message is BeginMessage {
-    const fields = message as Fields;
-    return isFiniteNumber(fields.width) && isFiniteNumber(fields.height);
+    return isAddressed(message, TARGETS.offscreen, BEGIN) && carries(message);
   }
 
   handle(message: BeginMessage): Promise<void> {

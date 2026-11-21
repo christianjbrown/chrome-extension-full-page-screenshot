@@ -1,3 +1,4 @@
+import type { Fields } from "./fields";
 import type { MessageFilter, Sender } from "./message-filter";
 import { isMessageFor } from "./messages";
 
@@ -12,7 +13,7 @@ export class OwnContextFilter implements MessageFilter {
   accepts(
     message: unknown,
     sender: Sender | undefined,
-  ): message is { target: string; type: unknown } {
+  ): message is Fields & { target: string } {
     return this.fromExtension(sender) && isMessageFor(message, this.target);
   }
 

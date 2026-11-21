@@ -1,3 +1,5 @@
+import type { Fields } from "./fields";
+
 // Who sent a message, as far as Chrome says.
 export interface Sender {
   id?: string | undefined;
@@ -8,5 +10,5 @@ export interface MessageFilter {
   accepts(
     message: unknown,
     sender: Sender | undefined,
-  ): message is { target: string; type: unknown };
+  ): message is Fields & { target: string };
 }
