@@ -1,3 +1,4 @@
+import { ReplyUnwrapper } from "../../src/shared/replies";
 import { OffscreenStitcher } from "../../src/background/offscreen-stitcher";
 
 function setUp(reply: unknown = { ok: true, value: ["blob:1"] }) {
@@ -19,7 +20,7 @@ function setUp(reply: unknown = { ok: true, value: ["blob:1"] }) {
     calls,
     document,
     messages,
-    stitcher: new OffscreenStitcher(document, messages),
+    stitcher: new OffscreenStitcher(document, messages, new ReplyUnwrapper()),
   };
 }
 

@@ -5,6 +5,7 @@ import type { Freezer } from "./layout-freezer";
 import type { Scroller } from "./scrollers";
 import type { Settler } from "./settler";
 import type { StyleOverrides, StyleRestoration, Styled } from "./style-ledger";
+import type { Viewport } from "./viewport";
 
 // What the service worker asks of the page while it captures.
 interface PageCommands {
@@ -24,7 +25,7 @@ export interface PageControllerDependencies {
   settler: Settler;
   images: ImageWaiter;
   root: Styled;
-  viewport: { innerWidth: number; innerHeight: number };
+  viewport: Viewport;
 }
 
 const NOT_PREPARED = "The page was not prepared";

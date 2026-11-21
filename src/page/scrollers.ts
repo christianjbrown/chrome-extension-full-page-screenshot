@@ -1,5 +1,6 @@
 import type { PageElement } from "./page-elements";
 import type { Styled } from "./style-ledger";
+import type { Viewport } from "./viewport";
 
 export interface ScrollFrame {
   top: number;
@@ -17,9 +18,7 @@ export interface Scroller {
   scrollTo(y: number): void;
 }
 
-export interface WindowLike {
-  innerWidth: number;
-  innerHeight: number;
+export interface WindowLike extends Viewport {
   scrollX: number;
   scrollY: number;
   scrollTo(x: number, y: number): void;
@@ -73,7 +72,7 @@ function onScreen(
 export class ElementScroller implements Scroller {
   constructor(
     private readonly element: PageElement,
-    private readonly window: WindowLike,
+    private readonly window: Viewport,
   ) {}
 
   get styled(): Styled {

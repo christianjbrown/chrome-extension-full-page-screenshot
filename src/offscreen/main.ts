@@ -5,8 +5,16 @@
 // service worker has no matchMedia.
 import { DARK_SCHEME_QUERY } from "../shared/colour-scheme";
 import { CommandRouter } from "../shared/command-router";
+import { OwnContextFilter } from "../shared/message-filter";
 import { offscreenGuards } from "../shared/message-guards";
-import { TARGETS, type OffscreenMessage, type Reply } from "../shared/messages";
+import {
+  TARGETS,
+  type BackgroundMessage,
+  type OffscreenMessage,
+  type Reply,
+} from "../shared/messages";
+import { SettledResponder } from "../shared/replies";
+import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { BlobUrls } from "./blob-urls";
 import { OFFSCREEN_CONFIG } from "./config";
 import { DataUrlDecoder } from "./image-decoder";
@@ -37,7 +45,6 @@ const stitcher = new Stitcher({
   writer: new PngSheetWriter(new BlobUrls(URL)),
 });
 const router = new CommandRouter<OffscreenMessage>(
-  TARGETS.offscreen,
   {
     begin: (message) => stitcher.begin(message.width, message.height),
     slice: (message) =>
@@ -45,7 +52,8 @@ const router = new CommandRouter<OffscreenMessage>(
     finish: () => stitcher.finish(),
   },
   offscreenGuards,
-  chrome.runtime.id,
+  new OwnContextFilter(chrome.runtime.id, TARGETS.offscreen),
+  new SettledResponder(),
 );
 
 chrome.runtime.onMessage.addListener(
@@ -55,7 +63,7 @@ chrome.runtime.onMessage.addListener(
 
 new SchemeReporter(
   window.matchMedia(DARK_SCHEME_QUERY),
-  chrome.runtime,
+  new RuntimeMessenger<BackgroundMessage>(chrome.runtime),
   (work, everyMs) => {
     window.setInterval(work, everyMs);
   },

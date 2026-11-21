@@ -3,15 +3,12 @@ import {
   BACKGROUND_TYPES,
   TARGETS,
   type BackgroundMessage,
+  type MessageSender,
 } from "../shared/messages";
 
 // The part of a MediaQueryList this needs.
 export interface SchemeQuery {
   readonly matches: boolean;
-}
-
-export interface MessageChannel {
-  sendMessage(message: BackgroundMessage): Promise<unknown>;
 }
 
 // Runs the work again and again, the way setInterval does.
@@ -27,7 +24,7 @@ export class SchemeReporter {
 
   constructor(
     private readonly dark: SchemeQuery,
-    private readonly channel: MessageChannel,
+    private readonly messages: MessageSender<BackgroundMessage>,
     private readonly repeat: Repeat,
     private readonly everyMs: number,
   ) {}
@@ -47,8 +44,8 @@ export class SchemeReporter {
       return;
     }
     this.reported = scheme;
-    this.channel
-      .sendMessage({
+    this.messages
+      .send({
         target: TARGETS.background,
         type: BACKGROUND_TYPES.scheme,
         scheme,

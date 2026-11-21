@@ -8,7 +8,7 @@ function start(dark: boolean, sendMessage = vi.fn().mockResolvedValue(1)) {
   const repeat = vi.fn((work: () => void) => {
     ticks.push(work);
   });
-  new SchemeReporter(query, { sendMessage }, repeat, EVERY_MS).start();
+  new SchemeReporter(query, { send: sendMessage }, repeat, EVERY_MS).start();
   return {
     query,
     sendMessage,

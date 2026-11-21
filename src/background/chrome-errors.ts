@@ -5,12 +5,12 @@ export interface ErrorExplainer {
   explain(error: unknown): string;
 }
 
-interface Translation {
+export interface Translation {
   pattern: RegExp;
   message: string;
 }
 
-const TRANSLATIONS: readonly Translation[] = [
+export const TRANSLATIONS: readonly Translation[] = [
   // Without the tabs permission Chrome hides its own pages' URLs from the
   // extension, so these only come to light when the injection is refused.
   { pattern: /^Cannot access a [a-z-]+:\/\/ URL/, message: REFUSALS.ownPages },
@@ -34,10 +34,12 @@ const TRANSLATIONS: readonly Translation[] = [
 
 // Says what Chrome's terser refusals mean for the person who clicked.
 export class ChromeErrorExplainer implements ErrorExplainer {
+  constructor(private readonly translations: readonly Translation[]) {}
+
   explain(error: unknown): string {
     const message = errorMessage(error);
     return (
-      TRANSLATIONS.find(({ pattern }) => pattern.test(message))?.message ??
+      this.translations.find(({ pattern }) => pattern.test(message))?.message ??
       message
     );
   }

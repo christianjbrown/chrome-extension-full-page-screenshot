@@ -1,3 +1,6 @@
+import type { Timer } from "../shared/timer";
+import type { Viewport } from "./viewport";
+
 // Waits for the images that have just scrolled into view, so a lazy-loaded
 // image is captured drawn rather than blank. A slow image gets a little while
 // and is then taken as it is, so one stuck download cannot stall the capture.
@@ -20,13 +23,6 @@ export interface PageImage {
 export interface DocumentImages {
   images: Iterable<unknown>;
 }
-
-export interface Viewport {
-  innerWidth: number;
-  innerHeight: number;
-}
-
-export type Timer = (callback: () => void, ms: number) => unknown;
 
 export class VisibleImageWaiter implements ImageWaiter {
   constructor(

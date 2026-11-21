@@ -1,4 +1,5 @@
 import type { ColourScheme } from "../shared/colour-scheme";
+import type { TabSchemeSink } from "./click-scheme";
 import type { SchemePolicy, SchemeState } from "./scheme-state";
 
 export interface SchemeMemory {
@@ -12,7 +13,7 @@ export interface SchemeIcon {
 
 // Works out which colour scheme the toolbar is in from the two things that
 // report one, and keeps the button's icon in step.
-export class ToolbarScheme {
+export class ToolbarScheme implements TabSchemeSink {
   private last: Promise<void> = Promise.resolve();
 
   constructor(

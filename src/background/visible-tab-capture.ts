@@ -1,4 +1,5 @@
 import { PNG_FORMAT } from "../shared/png";
+import type { Timer } from "../shared/timer";
 import type { Clock } from "./system-clock";
 
 export interface VisibleTabCapture {
@@ -38,9 +39,7 @@ export class ThrottledCapture implements VisibleTabCapture {
 }
 
 export class TimerSleeper implements Sleeper {
-  constructor(
-    private readonly timer: (callback: () => void, ms: number) => unknown,
-  ) {}
+  constructor(private readonly timer: Timer) {}
 
   sleep(ms: number): Promise<void> {
     return new Promise((resolve) => {

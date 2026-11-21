@@ -1,3 +1,4 @@
+import { ReplyUnwrapper } from "../../src/shared/replies";
 import { FinitePageValidator } from "../../src/background/page-validator";
 import { PageClient } from "../../src/background/page-client";
 
@@ -7,7 +8,13 @@ function setUp(reply: unknown = { ok: true, value: 7 }) {
   return {
     scripting,
     tabs,
-    page: new PageClient(scripting, tabs, "page.js", new FinitePageValidator()),
+    page: new PageClient({
+      scripting,
+      tabs,
+      file: "page.js",
+      validator: new FinitePageValidator(),
+      replies: new ReplyUnwrapper(),
+    }),
   };
 }
 

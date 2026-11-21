@@ -2,8 +2,10 @@
 // the service worker. It is injected again on every click, which the
 // reinstaller keeps from piling up listeners.
 import { CommandRouter } from "../shared/command-router";
+import { OwnContextFilter } from "../shared/message-filter";
 import { pageGuards } from "../shared/message-guards";
 import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
+import { SettledResponder } from "../shared/replies";
 import { PAGE_CONFIG } from "./config";
 import { VisibleImageWaiter } from "./image-waiter";
 import { FREEZE_RULES, LayoutFreezer } from "./layout-freezer";
@@ -73,14 +75,14 @@ const controller = new PageController({
   viewport: window,
 });
 const router = new CommandRouter<PageMessage>(
-  TARGETS.page,
   {
     prepare: () => controller.prepare(),
     scroll: (message) => controller.scrollTo(message.y, message.hideFixed),
     restore: () => controller.restore(),
   },
   pageGuards,
-  chrome.runtime.id,
+  new OwnContextFilter(chrome.runtime.id, TARGETS.page),
+  new SettledResponder(),
 );
 const listener: Listener = (message, sender, reply) =>
   router.route(message, sender as { id?: string }, reply);

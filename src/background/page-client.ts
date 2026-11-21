@@ -4,7 +4,7 @@ import {
   type PageLayout,
   type PageMessage,
 } from "../shared/messages";
-import { unwrap } from "../shared/replies";
+import type { ReplyReader } from "../shared/replies";
 import type { PageValidator } from "./page-validator";
 
 // Who failed to answer, in an error.
@@ -19,34 +19,38 @@ export interface PageDriver {
   restore(tabId: number): Promise<void>;
 }
 
-export interface ScriptingApi {
+interface ScriptingApi {
   executeScript(injection: {
     target: { tabId: number };
     files: string[];
   }): Promise<unknown>;
 }
 
-export interface TabMessagingApi {
+interface TabMessagingApi {
   sendMessage(tabId: number, message: PageMessage): Promise<unknown>;
 }
 
+export interface PageClientDependencies {
+  scripting: ScriptingApi;
+  tabs: TabMessagingApi;
+  // The page script's file in the extension.
+  file: string;
+  validator: PageValidator;
+  replies: ReplyReader;
+}
+
 export class PageClient implements PageDriver {
-  constructor(
-    private readonly scripting: ScriptingApi,
-    private readonly tabs: TabMessagingApi,
-    private readonly file: string,
-    private readonly validator: PageValidator,
-  ) {}
+  constructor(private readonly deps: PageClientDependencies) {}
 
   async inject(tabId: number): Promise<void> {
-    await this.scripting.executeScript({
+    await this.deps.scripting.executeScript({
       target: { tabId },
-      files: [this.file],
+      files: [this.deps.file],
     });
   }
 
   async prepare(tabId: number): Promise<PageLayout> {
-    return this.validator.layout(
+    return this.deps.validator.layout(
       await this.ask(tabId, { target: TARGETS.page, type: PAGE_TYPES.prepare }),
     );
   }
@@ -56,7 +60,7 @@ export class PageClient implements PageDriver {
     y: number,
     hideFixed: boolean,
   ): Promise<number> {
-    return this.validator.scroll(
+    return this.deps.validator.scroll(
       await this.ask(tabId, {
         target: TARGETS.page,
         type: PAGE_TYPES.scroll,
@@ -71,6 +75,7 @@ export class PageClient implements PageDriver {
   }
 
   private async ask(tabId: number, message: PageMessage): Promise<unknown> {
-    return unwrap(await this.tabs.sendMessage(tabId, message), PAGE);
+    const { tabs, replies } = this.deps;
+    return replies.read(await tabs.sendMessage(tabId, message), PAGE);
   }
 }

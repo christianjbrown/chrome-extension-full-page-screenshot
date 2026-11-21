@@ -1,4 +1,5 @@
 import { schemeFor, type ColourScheme } from "../shared/colour-scheme";
+import type { SchemeReader } from "./click-scheme";
 
 export interface ScriptRunner {
   executeScript(injection: {
@@ -16,7 +17,7 @@ export function tabPrefersDark(): boolean {
 
 // Reads the colour scheme from a page in a tab, which follows Chrome's own
 // Light and Dark setting. Only works in a tab the extension has been let into.
-export class TabScheme {
+export class TabScheme implements SchemeReader {
   constructor(private readonly scripting: ScriptRunner) {}
 
   // Chrome's own pages, and tabs that have closed, cannot be asked.

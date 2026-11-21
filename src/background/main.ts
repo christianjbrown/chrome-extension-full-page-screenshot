@@ -1,5 +1,6 @@
 // The service worker: builds the object graph and connects it to Chrome's events.
 import { CommandRouter } from "../shared/command-router";
+import { OwnContextFilter } from "../shared/message-filter";
 import { backgroundGuards } from "../shared/message-guards";
 import {
   TARGETS,
@@ -7,11 +8,12 @@ import {
   type OffscreenMessage,
   type Reply,
 } from "../shared/messages";
+import { ReplyUnwrapper, SettledResponder } from "../shared/replies";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
 import { CapturableTabs } from "./capturable-tabs";
 import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
-import { ChromeErrorExplainer } from "./chrome-errors";
+import { ChromeErrorExplainer, TRANSLATIONS } from "./chrome-errors";
 import { ClickScheme } from "./click-scheme";
 import { BACKGROUND_CONFIG } from "./config";
 import { DownloadCompletion } from "./download-completion";
@@ -37,6 +39,7 @@ import { ToolbarScheme } from "./toolbar-scheme";
 import { ThrottledCapture, TimerSleeper } from "./visible-tab-capture";
 
 const clock = new SystemClock();
+const replies = new ReplyUnwrapper();
 const filenames = new ClaimedFilenames();
 const indicator = new ToolbarIndicator(chrome.action);
 // The device's scheme comes from the offscreen document and Chrome's own from a
@@ -63,12 +66,13 @@ const offscreenPage = new OffscreenPage(
 const stitcher = new OffscreenStitcher(
   new ReopeningDocument(offscreenPage),
   new RuntimeMessenger<OffscreenMessage>(chrome.runtime),
+  replies,
 );
 const router = new CommandRouter<BackgroundMessage>(
-  TARGETS.background,
   { scheme: (message) => toolbarScheme.deviceIs(message.scheme) },
   backgroundGuards,
-  chrome.runtime.id,
+  new OwnContextFilter(chrome.runtime.id, TARGETS.background),
+  new SettledResponder(),
 );
 const controller = new ScreenshotController({
   targets: new CapturableTabs([
@@ -77,12 +81,13 @@ const controller = new ScreenshotController({
     new LocalFileRule(chrome.extension),
   ]),
   shooter: new FullPageShooter({
-    page: new PageClient(
-      chrome.scripting,
-      chrome.tabs,
-      PAGE_SCRIPT,
-      new FinitePageValidator(),
-    ),
+    page: new PageClient({
+      scripting: chrome.scripting,
+      tabs: chrome.tabs,
+      file: PAGE_SCRIPT,
+      validator: new FinitePageValidator(),
+      replies,
+    }),
     planner: new SlicePlanner({
       maxPageHeight: BACKGROUND_CONFIG.maxPageHeight,
       minFrameHeight: BACKGROUND_CONFIG.minFrameHeight,
@@ -109,7 +114,7 @@ const controller = new ScreenshotController({
     new DownloadCompletion(chrome.downloads.onChanged),
   ),
   indicator,
-  errors: new ChromeErrorExplainer(),
+  errors: new ChromeErrorExplainer(TRANSLATIONS),
 });
 
 chrome.action.onClicked.addListener((tab) => {

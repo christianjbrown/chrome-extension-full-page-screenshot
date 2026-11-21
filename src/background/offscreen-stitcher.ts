@@ -6,7 +6,7 @@ import {
   type Rect,
 } from "../shared/messages";
 import type { HiddenDocument } from "./offscreen-page";
-import { unwrap } from "../shared/replies";
+import type { ReplyReader } from "../shared/replies";
 
 // Who failed to answer, in an error.
 const STITCHER = "The stitcher";
@@ -29,6 +29,7 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   constructor(
     private readonly document: HiddenDocument,
     private readonly messages: MessageSender<OffscreenMessage>,
+    private readonly replies: ReplyReader,
   ) {}
 
   async begin(width: number, height: number): Promise<void> {
@@ -63,6 +64,6 @@ export class OffscreenStitcher implements StitchSession, StitchLifecycle {
   }
 
   private async ask<T>(message: OffscreenMessage): Promise<T> {
-    return unwrap(await this.messages.send(message), STITCHER) as T;
+    return this.replies.read(await this.messages.send(message), STITCHER) as T;
   }
 }
