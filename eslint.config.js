@@ -43,6 +43,12 @@ export default tseslint.config(
     },
   },
   {
+    // At most one decision per function in the extension's own code, so 100%
+    // branch coverage is also 100% path coverage.
+    files: ["src/**/*.ts"],
+    rules: { complexity: ["error", 2] },
+  },
+  {
     // The three contexts only talk through messages, never by importing each other.
     files: ["src/background/**/*.ts"],
     rules: {
