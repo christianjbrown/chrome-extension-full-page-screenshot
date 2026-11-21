@@ -16,9 +16,10 @@ import { LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
 import { DomElements } from "./dom-elements";
 import { DomImages } from "./dom-images";
-import { InstanceGuard, StyledGuard } from "./guards";
+import { GlobalSlot } from "./global-slot";
+import { InstalledGuard, InstanceGuard, StyledGuard } from "./guards";
 import { PrepareCommand } from "./prepare-command";
-import { Reinstaller, type Installed } from "./reinstaller";
+import { Reinstaller } from "./reinstaller";
 import { RestoreCommand } from "./restore-command";
 import { ScrollCommand } from "./scroll-command";
 import { ScrollerFinder } from "./scroller-finder";
@@ -32,26 +33,11 @@ type Listener = (
   reply: (reply: Reply<unknown>) => void,
 ) => boolean;
 
+// Where each copy of the script leaves its install for the next one.
 const KEY = "__fullPageScreenshot";
-const globals = globalThis as unknown as Record<
-  string,
-  Installed<Listener> | undefined
->;
 const reinstaller = new Reinstaller<Listener>(
-  {
-    get: () => globals[KEY],
-    set: (installed) => {
-      globals[KEY] = installed;
-    },
-  },
-  {
-    add: (listener) => {
-      chrome.runtime.onMessage.addListener(listener);
-    },
-    remove: (listener) => {
-      chrome.runtime.onMessage.removeListener(listener);
-    },
-  },
+  new GlobalSlot(globalThis, KEY, new InstalledGuard<Listener>()),
+  chrome.runtime.onMessage,
 );
 
 const root = document.documentElement;

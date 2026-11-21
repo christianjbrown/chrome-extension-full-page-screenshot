@@ -1,4 +1,8 @@
-import { InstanceGuard, StyledGuard } from "../../src/page/guards";
+import {
+  InstalledGuard,
+  InstanceGuard,
+  StyledGuard,
+} from "../../src/page/guards";
 
 class Thing {
   readonly name = "thing";
@@ -40,6 +44,26 @@ describe("StyledGuard", () => {
       value: styledThing({ ...style, removeProperty: undefined }),
     },
   ])("refuses one $name", ({ value }) => {
+    expect(guard.matches(value)).toBe(false);
+  });
+});
+
+describe("InstalledGuard", () => {
+  const guard = new InstalledGuard<() => void>();
+  const controller = { restore: () => Promise.resolve() };
+  const listener = (): void => undefined;
+
+  it("matches what an earlier copy left behind", () => {
+    expect(guard.matches({ listener, controller })).toBe(true);
+  });
+
+  it.each([
+    undefined,
+    "installed",
+    { listener: "no", controller },
+    { listener },
+    { listener, controller: {} },
+  ])("refuses %j", (value) => {
     expect(guard.matches(value)).toBe(false);
   });
 });

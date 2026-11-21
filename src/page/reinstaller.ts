@@ -11,9 +11,10 @@ export interface InstallSlot<L> {
   set(installed: Installed<L>): void;
 }
 
+// Named as Chrome's events name them, so one can be passed in as it is.
 export interface ListenerRegistry<L> {
-  add(listener: L): void;
-  remove(listener: L): void;
+  addListener(listener: L): void;
+  removeListener(listener: L): void;
 }
 
 // The script is injected again on every click, so each copy first retires the
@@ -27,10 +28,10 @@ export class Reinstaller<L> {
   install(installed: Installed<L>): void {
     const previous = this.slot.get();
     if (previous !== undefined) {
-      this.registry.remove(previous.listener);
+      this.registry.removeListener(previous.listener);
       void previous.controller.restore();
     }
-    this.registry.add(installed.listener);
+    this.registry.addListener(installed.listener);
     this.slot.set(installed);
   }
 }

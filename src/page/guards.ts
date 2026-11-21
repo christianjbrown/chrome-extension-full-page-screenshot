@@ -2,6 +2,7 @@
 import { isFields } from "../shared/fields";
 import type { Guard } from "./guard";
 import type { InlineStyle, Styled } from "./inline-styles";
+import type { Installed } from "./reinstaller";
 
 // A browser class, such as Element or HTMLImageElement.
 type Kind<T> = abstract new (...args: never[]) => T;
@@ -36,5 +37,20 @@ export class StyledGuard<T> implements Guard<T & Styled> {
 
   matches(value: unknown): value is T & Styled {
     return this.kind.matches(value) && isStyled(value);
+  }
+}
+
+const hasRestore = (controller: unknown): boolean =>
+  isFields(controller) && isMethod(controller.restore);
+
+// What an earlier copy of the script left behind. Its listener can only be
+// checked to be a function.
+export class InstalledGuard<L> implements Guard<Installed<L>> {
+  matches(value: unknown): value is Installed<L> {
+    return isFields(value) && this.holds(value);
+  }
+
+  private holds(value: Record<string, unknown>): boolean {
+    return isMethod(value.listener) && hasRestore(value.controller);
   }
 }
