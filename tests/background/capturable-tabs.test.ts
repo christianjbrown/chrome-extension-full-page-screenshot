@@ -4,7 +4,14 @@ import {
   LocalFileRule,
   WebStoreRule,
 } from "../../src/background/capture-rules";
-import { REFUSALS } from "../../src/background/refusals";
+
+const REFUSALS = {
+  ownPages: "Chrome does not let extensions capture its own pages",
+  webStore: "Chrome does not let extensions capture the Web Store",
+  localFiles:
+    "Turn on Allow access to file URLs for this extension to capture local files",
+  leftTab: "Stay on the tab until the screenshot is done",
+};
 
 const tabs = (fileAccess = false) =>
   new CapturableTabs([

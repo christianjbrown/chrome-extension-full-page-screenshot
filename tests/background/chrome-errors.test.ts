@@ -5,7 +5,14 @@ import {
   OwnPageRefusal,
   WebStoreRefusal,
 } from "../../src/background/chrome-refusals";
-import { REFUSALS } from "../../src/background/refusals";
+
+const REFUSALS = {
+  ownPages: "Chrome does not let extensions capture its own pages",
+  webStore: "Chrome does not let extensions capture the Web Store",
+  localFiles:
+    "Turn on Allow access to file URLs for this extension to capture local files",
+  leftTab: "Stay on the tab until the screenshot is done",
+};
 
 const explainer = new ChromeErrorExplainer([
   new OwnPageRefusal(REFUSALS.ownPages),

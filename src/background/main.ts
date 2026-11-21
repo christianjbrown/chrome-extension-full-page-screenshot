@@ -36,7 +36,6 @@ import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
 import { PageClient } from "./page-client";
-import { REFUSALS } from "./refusals";
 import { QuietClick } from "./quiet-click";
 import { FinitePageValidator } from "./finite-page-validator";
 import { RenewingDocument } from "./renewing-document";
@@ -57,6 +56,17 @@ import { TimerSleeper } from "./timer-sleeper";
 import { TimestampedNamer } from "./timestamped-namer";
 import { KebabSlugger } from "./kebab-slugger";
 import { LocalTimeStamper } from "./local-time-stamper";
+
+// What the person who clicked is told when Chrome will not let a tab be
+// captured. The rules that check first and the explainer that translates
+// Chrome's own errors afterwards say the same things.
+const OWN_PAGES_REFUSAL =
+  "Chrome does not let extensions capture its own pages";
+const WEB_STORE_REFUSAL =
+  "Chrome does not let extensions capture the Web Store";
+const LOCAL_FILES_REFUSAL =
+  "Turn on Allow access to file URLs for this extension to capture local files";
+const LEFT_TAB_REFUSAL = "Stay on the tab until the screenshot is done";
 
 const clock = new SystemClock(Date);
 const replies = new ReplyUnwrapper();
@@ -126,9 +136,9 @@ const router = new CommandRouter<BackgroundMessage>(
 );
 const controller = new ScreenshotController({
   targets: new CapturableTabs([
-    new BrowserPageRule(REFUSALS.ownPages),
-    new WebStoreRule(REFUSALS.webStore),
-    new LocalFileRule(chrome.extension, REFUSALS.localFiles),
+    new BrowserPageRule(OWN_PAGES_REFUSAL),
+    new WebStoreRule(WEB_STORE_REFUSAL),
+    new LocalFileRule(chrome.extension, LOCAL_FILES_REFUSAL),
   ]),
   shooter: new FullPageShooter({
     page: new PageClient({
@@ -167,10 +177,10 @@ const controller = new ScreenshotController({
   indicator,
   stages,
   errors: new ChromeErrorExplainer([
-    new OwnPageRefusal(REFUSALS.ownPages),
-    new WebStoreRefusal(REFUSALS.webStore),
-    new LocalFileRefusal(REFUSALS.localFiles),
-    new LeftTabRefusal(REFUSALS.leftTab),
+    new OwnPageRefusal(OWN_PAGES_REFUSAL),
+    new WebStoreRefusal(WEB_STORE_REFUSAL),
+    new LocalFileRefusal(LOCAL_FILES_REFUSAL),
+    new LeftTabRefusal(LEFT_TAB_REFUSAL),
   ]),
 });
 
