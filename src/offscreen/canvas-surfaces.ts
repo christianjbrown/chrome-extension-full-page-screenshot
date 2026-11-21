@@ -16,7 +16,7 @@ export interface Canvas2d<I> {
   ): void;
 }
 
-interface CanvasLike<I> {
+export interface CanvasLike<I> {
   width: number;
   height: number;
   getContext(kind: typeof CONTEXT_2D): Canvas2d<I> | null;
@@ -32,7 +32,8 @@ const CONTEXT_2D = "2d";
 // A canvas shrunk to nothing gives its memory back at once.
 const RELEASED = 0;
 
-class CanvasSurface<I extends Bitmap> implements Surface<I> {
+// Paints one output image on a canvas.
+export class CanvasSurface<I extends Bitmap> implements Surface<I> {
   constructor(
     private readonly canvas: CanvasLike<I>,
     private readonly context: Canvas2d<I>,
@@ -61,13 +62,23 @@ class CanvasSurface<I extends Bitmap> implements Surface<I> {
   }
 }
 
+// Makes the surface that paints on a canvas. The root passes it in, so the
+// factory never names a class.
+export type CanvasSurfaceMaker<I extends Bitmap> = (
+  canvas: CanvasLike<I>,
+  context: Canvas2d<I>,
+) => Surface<I>;
+
 const tooBig = (width: number, height: number): string =>
   `Chrome could not make a ${String(width)} by ${String(height)} image`;
 
 export class OffscreenCanvasSurfaces<
   I extends Bitmap,
 > implements SurfaceFactory<I> {
-  constructor(private readonly Canvas: CanvasConstructor<I>) {}
+  constructor(
+    private readonly Canvas: CanvasConstructor<I>,
+    private readonly surface: CanvasSurfaceMaker<I>,
+  ) {}
 
   create(width: number, height: number): Surface<I> {
     const canvas = new this.Canvas(width, height);
@@ -75,6 +86,6 @@ export class OffscreenCanvasSurfaces<
     if (context === null) {
       throw new Error(tooBig(width, height));
     }
-    return new CanvasSurface(canvas, context);
+    return this.surface(canvas, context);
   }
 }
