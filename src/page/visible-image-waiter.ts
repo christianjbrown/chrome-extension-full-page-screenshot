@@ -2,14 +2,17 @@ import type { Timer } from "../shared/timer";
 import type { ImageWaiter } from "./image-waiter";
 import type { Viewport } from "./viewport";
 
+// Where an image sits in the viewport, in CSS pixels.
+interface ImageBox {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 export interface PageImage {
   complete: boolean;
-  getBoundingClientRect(): {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  };
+  getBoundingClientRect(): ImageBox;
   decode(): Promise<void>;
 }
 
@@ -46,11 +49,14 @@ export class VisibleImageWaiter implements ImageWaiter {
 
   private onScreen(image: PageImage): boolean {
     const box = image.getBoundingClientRect();
-    return (
-      box.bottom > 0 &&
-      box.top < this.viewport.innerHeight &&
-      box.right > 0 &&
-      box.left < this.viewport.innerWidth
-    );
+    return this.withinRows(box) && this.withinColumns(box);
+  }
+
+  private withinRows(box: ImageBox): boolean {
+    return box.bottom > 0 && box.top < this.viewport.innerHeight;
+  }
+
+  private withinColumns(box: ImageBox): boolean {
+    return box.right > 0 && box.left < this.viewport.innerWidth;
   }
 }

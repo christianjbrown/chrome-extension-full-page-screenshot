@@ -1,7 +1,7 @@
 import { POSITION, PROPERTY, VALUE } from "./css";
 
 // What happens to the elements of one computed position on a slice.
-interface PositionRule {
+export interface PositionRule {
   // Whether this slice needs the overrides at all.
   applies(hideFixed: boolean): boolean;
   overrides: readonly (readonly [property: string, value: string])[];

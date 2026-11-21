@@ -55,6 +55,13 @@ describe("ScrollerFinder", () => {
     expect(scroller.styled).toBe(big);
   });
 
+  it("keeps the first of two scrolling elements the same size", () => {
+    const first = fakeElement({ scrollHeight: 900, overflowY: "auto" });
+    const second = fakeElement({ scrollHeight: 900, overflowY: "auto" });
+
+    expect(find(800, new FakeElements([first, second])).styled).toBe(first);
+  });
+
   it("skips elements that clip without scrolling, or have nothing to scroll", () => {
     const hidden = fakeElement({ scrollHeight: 900, overflowY: "hidden" });
     const short = fakeElement({ scrollHeight: 100, overflowY: "auto" });
