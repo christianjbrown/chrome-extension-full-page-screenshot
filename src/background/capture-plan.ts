@@ -1,14 +1,11 @@
 import type { PageLayout, Rect } from "../shared/messages";
 
-// Past this, in CSS pixels, the capture stops. It keeps a page that never ends
-// from capturing for minutes.
-export const MAX_PAGE_HEIGHT = 60000;
-
-// A scroller shorter than this is not a pane worth stepping through, so the
-// whole viewport is stepped instead.
-const MIN_FRAME_HEIGHT = 100;
-// More slices than this would take hours, so the capture is refused.
-const MAX_SLICES = 1000;
+// How far a capture may go. The config says why each one is there.
+export interface PlanLimits {
+  maxPageHeight: number;
+  minFrameHeight: number;
+  maxSlices: number;
+}
 
 const TOO_LONG = "This page is too long to capture";
 
@@ -30,7 +27,7 @@ export interface CapturePlanner {
 }
 
 // A frame scrolled entirely off screen has nothing to show, so it is not scrolled.
-function deepestScroll(layout: PageLayout): number {
+function deepestScroll(layout: PageLayout, maxPageHeight: number): number {
   if (layout.frameHeight <= 0) {
     return 0;
   }
@@ -38,16 +35,20 @@ function deepestScroll(layout: PageLayout): number {
     0,
     Math.min(
       layout.scrollHeight - layout.frameHeight,
-      MAX_PAGE_HEIGHT - layout.viewportHeight,
+      maxPageHeight - layout.viewportHeight,
     ),
   );
 }
 
-function scrollsDownTo(deepest: number, step: number): number[] {
+function scrollsDownTo(
+  deepest: number,
+  step: number,
+  maxSlices: number,
+): number[] {
   const scrolls = [0];
   for (let scroll = step; scroll < deepest; scroll += step) {
     scrolls.push(scroll);
-    if (scrolls.length > MAX_SLICES) {
+    if (scrolls.length > maxSlices) {
       throw new Error(TOO_LONG);
     }
   }
@@ -57,8 +58,8 @@ function scrollsDownTo(deepest: number, step: number): number[] {
   return scrolls;
 }
 
-function withRealFrame(layout: PageLayout): PageLayout {
-  if (layout.frameHeight <= 0 || layout.frameHeight >= MIN_FRAME_HEIGHT) {
+function withRealFrame(layout: PageLayout, minFrameHeight: number): PageLayout {
+  if (layout.frameHeight <= 0 || layout.frameHeight >= minFrameHeight) {
     return layout;
   }
   return {
@@ -76,8 +77,11 @@ function withRealFrame(layout: PageLayout): PageLayout {
 // frame's own box, the last one adds only the rows the one before it had not
 // covered, and it also brings whatever sits below the frame.
 export class SlicePlanner implements CapturePlanner {
+  constructor(private readonly limits: PlanLimits) {}
+
   plan(reported: PageLayout): CapturePlan {
-    const layout = withRealFrame(reported);
+    const { maxPageHeight, minFrameHeight, maxSlices } = this.limits;
+    const layout = withRealFrame(reported, minFrameHeight);
     const { viewportWidth, viewportHeight, frameTop, frameHeight } = layout;
     const frameBottom = frameTop + frameHeight;
     const across = (top: number, bottom: number): Rect => ({
@@ -92,8 +96,8 @@ export class SlicePlanner implements CapturePlanner {
       width: layout.frameWidth,
       height: frameBottom - top,
     });
-    const deepest = deepestScroll(layout);
-    const scrolls = scrollsDownTo(deepest, frameHeight);
+    const deepest = deepestScroll(layout, maxPageHeight);
+    const scrolls = scrollsDownTo(deepest, frameHeight, maxSlices);
     let coveredTo = 0;
     const slices = scrolls.map((scroll, index) => {
       const rects = [

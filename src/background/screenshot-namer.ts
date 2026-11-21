@@ -18,8 +18,6 @@ export interface ScreenshotNamer {
 const DIGITS = 2;
 const ZERO = "0";
 const SEPARATOR = "-";
-// A title longer than this is cut, so the file name stays manageable.
-const MAX_TITLE_LENGTH = 80;
 // The name for a page with no usable title.
 const UNTITLED = "screenshot";
 const PART = "-part-";
@@ -33,7 +31,7 @@ function pad(number: number): string {
   return String(number).padStart(DIGITS, ZERO);
 }
 
-function kebab(text: string): string {
+function kebab(text: string, maxLength: number): string {
   const words = text
     .normalize(DECOMPOSED)
     // Latin accents only (é to e); other scripts' marks, like Japanese ペ, recombine.
@@ -42,7 +40,7 @@ function kebab(text: string): string {
     .toLowerCase()
     .split(NOT_A_WORD)
     .filter((word) => word !== "");
-  const name = words.join(SEPARATOR).slice(0, MAX_TITLE_LENGTH);
+  const name = words.join(SEPARATOR).slice(0, maxLength);
   return name.endsWith(SEPARATOR) ? name.slice(0, -1) : name;
 }
 
@@ -60,13 +58,17 @@ function stamp(date: Date): string {
 // "2026-10-30-14-05-my-cool-page", in the laptop's own time zone, so
 // screenshots sort by when they were taken.
 export class TimestampedNamer implements ScreenshotNamer {
-  constructor(private readonly clock: Clock) {}
+  constructor(
+    private readonly clock: Clock,
+    private readonly maxTitleLength: number,
+  ) {}
 
   // One part is the plain name; a page cut into parts numbers each of them.
   name(title: string | undefined, urls: string[]): NamedFile[] {
-    const name = [stamp(this.clock.now()), kebab(title ?? "") || UNTITLED].join(
-      SEPARATOR,
-    );
+    const name = [
+      stamp(this.clock.now()),
+      kebab(title ?? "", this.maxTitleLength) || UNTITLED,
+    ].join(SEPARATOR);
     return urls.map((url, index) => ({
       url,
       filename:

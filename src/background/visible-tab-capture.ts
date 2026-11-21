@@ -16,10 +16,6 @@ export interface Sleeper {
   sleep(ms: number): Promise<void>;
 }
 
-// Chrome allows two captureVisibleTab calls a second and fails the third, so
-// captures are spaced out a little wider than that.
-export const CAPTURE_SPACING_MS = 600;
-
 export class ThrottledCapture implements VisibleTabCapture {
   private last = Number.NEGATIVE_INFINITY;
 
@@ -27,10 +23,12 @@ export class ThrottledCapture implements VisibleTabCapture {
     private readonly tabs: CaptureApi,
     private readonly clock: Clock,
     private readonly sleeper: Sleeper,
+    // The least time between two captures.
+    private readonly spacingMs: number,
   ) {}
 
   async capture(windowId: number): Promise<string> {
-    const wait = this.last + CAPTURE_SPACING_MS - this.clock.now().getTime();
+    const wait = this.last + this.spacingMs - this.clock.now().getTime();
     if (wait > 0) {
       await this.sleeper.sleep(wait);
     }

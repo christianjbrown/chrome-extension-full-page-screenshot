@@ -13,6 +13,7 @@ import { BrowserPageRule, LocalFileRule, WebStoreRule } from "./capture-rules";
 import { SlicePlanner } from "./capture-plan";
 import { ChromeErrorExplainer } from "./chrome-errors";
 import { ClickScheme } from "./click-scheme";
+import { BACKGROUND_CONFIG } from "./config";
 import { DownloadSaver } from "./download-saver";
 import { OFFSCREEN_DOCUMENT_PATH, PAGE_SCRIPT } from "./entries";
 import { ClaimedFilenames } from "./filename-claims";
@@ -80,17 +81,22 @@ const controller = new ScreenshotController({
       PAGE_SCRIPT,
       new FinitePageValidator(),
     ),
-    planner: new SlicePlanner(),
+    planner: new SlicePlanner({
+      maxPageHeight: BACKGROUND_CONFIG.maxPageHeight,
+      minFrameHeight: BACKGROUND_CONFIG.minFrameHeight,
+      maxSlices: BACKGROUND_CONFIG.maxSlices,
+    }),
     capture: new ThrottledCapture(
       chrome.tabs,
       clock,
       new TimerSleeper((callback, ms) => setTimeout(callback, ms)),
+      BACKGROUND_CONFIG.captureSpacingMs,
     ),
     stitcher,
     indicator,
   }),
   stitcher,
-  namer: new TimestampedNamer(clock),
+  namer: new TimestampedNamer(clock, BACKGROUND_CONFIG.maxTitleLength),
   saver: new DownloadSaver(chrome.downloads, filenames),
   indicator,
   errors: new ChromeErrorExplainer(),

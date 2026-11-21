@@ -17,7 +17,9 @@ function setUp(parts?: { top: number; height: number }[]) {
   const stitcher = new Stitcher({
     decoder: { decode: vi.fn(() => Promise.resolve(images[decoded++]!)) },
     cutter:
-      parts === undefined ? new CanvasLimitCutter() : { partsFor: () => parts },
+      parts === undefined
+        ? new CanvasLimitCutter(16384, 64 * 1024 * 1024)
+        : { partsFor: () => parts },
     surfaces: {
       create: vi.fn((width: number, height: number) => {
         const surface = new FakeSurface(width, height);

@@ -1,7 +1,7 @@
 import { TimestampedNamer } from "../../src/background/screenshot-namer";
 import { SystemClock } from "../../src/background/system-clock";
 
-const at = (date: Date) => new TimestampedNamer({ now: () => date });
+const at = (date: Date) => new TimestampedNamer({ now: () => date }, 80);
 const afternoon = new Date(2026, 9, 30, 14, 5, 12);
 const one = (title: string | undefined, date = afternoon) =>
   at(date).name(title, ["blob:1"])[0]!.filename;

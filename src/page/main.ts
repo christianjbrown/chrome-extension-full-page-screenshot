@@ -4,6 +4,7 @@
 import { CommandRouter } from "../shared/command-router";
 import { pageGuards } from "../shared/message-guards";
 import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
+import { PAGE_CONFIG } from "./config";
 import { VisibleImageWaiter } from "./image-waiter";
 import { FREEZE_RULES, LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
@@ -60,13 +61,13 @@ const controller = new PageController({
   settler: new FrameSettler(
     (callback) => requestAnimationFrame(callback),
     (callback, ms) => setTimeout(callback, ms),
-    100,
+    PAGE_CONFIG.settleMs,
   ),
   images: new VisibleImageWaiter(
     document,
     window,
     (callback, ms) => setTimeout(callback, ms),
-    2000,
+    PAGE_CONFIG.imagePatienceMs,
   ),
   root,
   viewport: window,

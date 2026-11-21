@@ -1,11 +1,10 @@
 import { BlobUrls } from "../../src/offscreen/blob-urls";
 import { DataUrlDecoder } from "../../src/offscreen/image-decoder";
-import {
-  CanvasLimitCutter,
-  MAX_PART_PIXELS,
-  MAX_PART_SIDE,
-} from "../../src/offscreen/part-layout";
+import { CanvasLimitCutter } from "../../src/offscreen/part-layout";
 import { fakeBitmap } from "./fakes";
+
+const MAX_PART_SIDE = 16384;
+const MAX_PART_PIXELS = 64 * 1024 * 1024;
 
 describe("DataUrlDecoder", () => {
   it("fetches the data URL and decodes it to a bitmap", async () => {
@@ -54,7 +53,7 @@ describe("BlobUrls", () => {
 });
 
 describe("CanvasLimitCutter", () => {
-  const cutter = new CanvasLimitCutter();
+  const cutter = new CanvasLimitCutter(MAX_PART_SIDE, MAX_PART_PIXELS);
 
   it("keeps an image that fits as one part", () => {
     expect(cutter.partsFor(2400, 9000)).toEqual([{ top: 0, height: 9000 }]);

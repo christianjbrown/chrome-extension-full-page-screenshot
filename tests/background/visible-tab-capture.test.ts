@@ -1,8 +1,9 @@
 import {
-  CAPTURE_SPACING_MS,
   ThrottledCapture,
   TimerSleeper,
 } from "../../src/background/visible-tab-capture";
+
+const CAPTURE_SPACING_MS = 600;
 
 function setUp() {
   let now = 10_000;
@@ -21,7 +22,7 @@ function setUp() {
     tabs,
     sleeper,
     advance,
-    capture: new ThrottledCapture(tabs, clock, sleeper),
+    capture: new ThrottledCapture(tabs, clock, sleeper, CAPTURE_SPACING_MS),
   };
 }
 

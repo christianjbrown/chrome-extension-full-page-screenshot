@@ -22,7 +22,10 @@ const stitcher = new Stitcher({
     (url) => fetch(url),
     (blob) => createImageBitmap(blob),
   ),
-  cutter: new CanvasLimitCutter(),
+  cutter: new CanvasLimitCutter(
+    OFFSCREEN_CONFIG.maxPartSide,
+    OFFSCREEN_CONFIG.maxPartPixels,
+  ),
   surfaces: new OffscreenCanvasSurfaces(OffscreenCanvas),
   geometry: new DeviceGeometry(),
   urls: new BlobUrls(URL),
