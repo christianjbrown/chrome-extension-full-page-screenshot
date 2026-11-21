@@ -1,10 +1,10 @@
 import type { PageLayout } from "../shared/messages";
-import { PROPERTY, VALUE } from "./css";
 import type { ImageWaiter } from "./image-waiter";
 import type { Freezer } from "./layout-freezer";
+import type { ScrollSteadier } from "./scroll-steadier";
 import type { Scroller } from "./scrollers";
 import type { Settler } from "./settler";
-import type { StyleOverrides, StyleRestoration, Styled } from "./style-ledger";
+import type { StyleRestoration } from "./style-ledger";
 import type { Viewport } from "./viewport";
 
 // What the service worker asks of the page while it captures.
@@ -20,11 +20,12 @@ interface ScrollerSource {
 
 export interface PageControllerDependencies {
   scrollers: ScrollerSource;
-  ledger: StyleOverrides & StyleRestoration;
+  steadier: ScrollSteadier;
   freezer: Freezer;
   settler: Settler;
   images: ImageWaiter;
-  root: Styled;
+  // Puts back every style the capture overrode.
+  styles: StyleRestoration;
   viewport: Viewport;
 }
 
@@ -43,12 +44,7 @@ export class PageController implements PageCommands {
   prepare(): Promise<PageLayout> {
     const scroller = this.deps.scrollers.find();
     this.session = { scroller, origin: scroller.position() };
-    // Smooth scrolling would still be moving when the slice is taken, and a
-    // classic scrollbar would be painted into every slice.
-    const { ledger, root } = this.deps;
-    ledger.override(root, PROPERTY.scrollBehavior, VALUE.auto);
-    ledger.override(scroller.styled, PROPERTY.scrollBehavior, VALUE.auto);
-    ledger.override(scroller.styled, PROPERTY.scrollbarWidth, VALUE.none);
+    this.deps.steadier.steady(scroller.styled);
     this.deps.freezer.freeze(false);
     const frame = scroller.frame();
     return Promise.resolve({
@@ -81,7 +77,7 @@ export class PageController implements PageCommands {
       this.session.scroller.scrollTo(this.session.origin);
       this.session = undefined;
     }
-    this.deps.ledger.restore();
+    this.deps.styles.restore();
     return Promise.resolve();
   }
 

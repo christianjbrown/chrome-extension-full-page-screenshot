@@ -1,3 +1,4 @@
+import { CaptureScrollStyles } from "../../src/page/capture-scroll-styles";
 import { FREEZE_RULES, LayoutFreezer } from "../../src/page/layout-freezer";
 import { PageController } from "../../src/page/page-controller";
 import { WindowScroller } from "../../src/page/scrollers";
@@ -26,11 +27,11 @@ function setUp() {
   };
   const controller = new PageController({
     scrollers: { find: () => new WindowScroller(window, root) },
-    ledger,
+    steadier: new CaptureScrollStyles(ledger, root),
     freezer: new LayoutFreezer(elements, ledger, FREEZE_RULES),
     settler,
     images,
-    root,
+    styles: ledger,
     viewport: window,
   });
   return { window, root, header, settler, images, steps, controller };

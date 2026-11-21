@@ -6,6 +6,7 @@ import { OwnContextFilter } from "../shared/message-filter";
 import { pageGuards } from "../shared/message-guards";
 import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
 import { SettledResponder } from "../shared/replies";
+import { CaptureScrollStyles } from "./capture-scroll-styles";
 import { PAGE_CONFIG } from "./config";
 import { VisibleImageWaiter } from "./image-waiter";
 import { FREEZE_RULES, LayoutFreezer } from "./layout-freezer";
@@ -58,7 +59,7 @@ const controller = new PageController({
     elements,
     new DomScrollerFactory(window, root),
   ),
-  ledger,
+  steadier: new CaptureScrollStyles(ledger, root),
   freezer: new LayoutFreezer(elements, ledger, FREEZE_RULES),
   settler: new FrameSettler(
     (callback) => requestAnimationFrame(callback),
@@ -71,7 +72,7 @@ const controller = new PageController({
     (callback, ms) => setTimeout(callback, ms),
     PAGE_CONFIG.imagePatienceMs,
   ),
-  root,
+  styles: ledger,
   viewport: window,
 });
 const router = new CommandRouter<PageMessage>(
