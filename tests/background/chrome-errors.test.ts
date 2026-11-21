@@ -5,12 +5,13 @@ import {
   OwnPageRefusal,
   WebStoreRefusal,
 } from "../../src/background/chrome-refusals";
+import { REFUSALS } from "../../src/background/refusals";
 
 const explainer = new ChromeErrorExplainer([
-  new OwnPageRefusal(),
-  new WebStoreRefusal(),
-  new LocalFileRefusal(),
-  new LeftTabRefusal(),
+  new OwnPageRefusal(REFUSALS.ownPages),
+  new WebStoreRefusal(REFUSALS.webStore),
+  new LocalFileRefusal(REFUSALS.localFiles),
+  new LeftTabRefusal(REFUSALS.leftTab),
 ]);
 const explain = (message: string) => explainer.explain(new Error(message));
 

@@ -36,6 +36,7 @@ import { FullPageShooter } from "./full-page-shooter";
 import { OffscreenPage } from "./offscreen-page";
 import { OffscreenStitcher } from "./offscreen-stitcher";
 import { PageClient } from "./page-client";
+import { REFUSALS } from "./refusals";
 import { QuietClick } from "./quiet-click";
 import { FinitePageValidator } from "./finite-page-validator";
 import { RenewingDocument } from "./renewing-document";
@@ -104,9 +105,9 @@ const router = new CommandRouter<BackgroundMessage>(
 );
 const controller = new ScreenshotController({
   targets: new CapturableTabs([
-    new BrowserPageRule(),
-    new WebStoreRule(),
-    new LocalFileRule(chrome.extension),
+    new BrowserPageRule(REFUSALS.ownPages),
+    new WebStoreRule(REFUSALS.webStore),
+    new LocalFileRule(chrome.extension, REFUSALS.localFiles),
   ]),
   shooter: new FullPageShooter({
     page: new PageClient({
@@ -143,10 +144,10 @@ const controller = new ScreenshotController({
   ),
   indicator,
   errors: new ChromeErrorExplainer([
-    new OwnPageRefusal(),
-    new WebStoreRefusal(),
-    new LocalFileRefusal(),
-    new LeftTabRefusal(),
+    new OwnPageRefusal(REFUSALS.ownPages),
+    new WebStoreRefusal(REFUSALS.webStore),
+    new LocalFileRefusal(REFUSALS.localFiles),
+    new LeftTabRefusal(REFUSALS.leftTab),
   ]),
 });
 
