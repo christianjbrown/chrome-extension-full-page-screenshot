@@ -6,7 +6,7 @@
 import { DARK_SCHEME_QUERY } from "../shared/colour-scheme";
 import { CommandRouter } from "../shared/command-router";
 import { OwnContextFilter } from "../shared/own-context-filter";
-import { offscreenGuards } from "../shared/message-guards";
+import { everyCommandOnce } from "../shared/every-command-once";
 import {
   TARGETS,
   type BackgroundMessage,
@@ -15,7 +15,10 @@ import {
 } from "../shared/messages";
 import { SettledResponder } from "../shared/settled-responder";
 import { RuntimeMessenger } from "../shared/runtime-messenger";
+import { BeginCommand } from "./begin-command";
 import { BlobUrls } from "./blob-urls";
+import { FinishCommand } from "./finish-command";
+import { SliceCommand } from "./slice-command";
 import { MAX_PART_PIXELS, MAX_PART_SIDE } from "./canvas-limits";
 import { OFFSCREEN_CONFIG } from "./config";
 import { DataUrlDecoder } from "./data-url-decoder";
@@ -43,13 +46,11 @@ const stitcher = new Stitcher({
   writer: new PngSheetWriter(new BlobUrls(URL)),
 });
 const router = new CommandRouter<OffscreenMessage>(
-  {
-    begin: (message) => stitcher.begin(message.width, message.height),
-    slice: (message) =>
-      stitcher.add(message.dataUrl, message.rects, message.scroll),
-    finish: () => stitcher.finish(),
-  },
-  offscreenGuards,
+  everyCommandOnce<OffscreenMessage>()(
+    new BeginCommand(stitcher),
+    new SliceCommand(stitcher),
+    new FinishCommand(stitcher),
+  ),
   new OwnContextFilter(chrome.runtime.id, TARGETS.offscreen),
   new SettledResponder(),
 );

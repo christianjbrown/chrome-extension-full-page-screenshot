@@ -2,6 +2,11 @@ import type { Placing } from "./geometry";
 import type { ImageDecoder } from "./image-decoder";
 import type { PageSize, Picture, PictureSizer } from "./picture";
 import type { SheetWriter } from "./sheet-writer";
+import type {
+  SlicePainter,
+  StitchFinisher,
+  StitchStarter,
+} from "./stitch-commands";
 import type { Rect } from "../shared/messages";
 import { isFiniteNumber, isPositiveNumber } from "../shared/numbers";
 import type { Bitmap, SurfaceFactory } from "./surfaces";
@@ -10,16 +15,6 @@ const ERRORS = {
   size: "The page has an unusable size",
   scroll: "The page has an unusable scroll position",
 } as const;
-
-// What the service worker asks of the offscreen document.
-interface StitchCommands {
-  begin(width: number, height: number): Promise<void>;
-  // Each box of the viewport capture belongs in the page at its own position
-  // plus the scroll, all in CSS pixels.
-  add(dataUrl: string, rects: Rect[], scroll: number): Promise<void>;
-  // Blob URLs of the finished PNGs, one per part, top to bottom.
-  finish(): Promise<string[]>;
-}
 
 export interface StitcherDependencies {
   decoder: ImageDecoder;
@@ -32,7 +27,7 @@ export interface StitcherDependencies {
 // Paints the slices into the output a part at a time. Slices arrive top to
 // bottom, so each part is written out as soon as the slices move past it, and
 // at most two parts are ever held in memory.
-export class Stitcher implements StitchCommands {
+export class Stitcher implements StitchStarter, SlicePainter, StitchFinisher {
   private page: PageSize = { width: 0, height: 0 };
   private picture: Picture | undefined;
 
