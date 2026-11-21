@@ -4,7 +4,12 @@ import type {
   StitchSession,
 } from "../../src/background/stitch-session";
 import type { PageDriver } from "../../src/background/page-driver";
-import type { ScreenshotIndicator } from "../../src/background/screenshot-indicator";
+import type {
+  Look,
+  ScreenshotIndicator,
+  ScreenshotStages,
+  Stage,
+} from "../../src/background/screenshot-indicator";
 
 export type Mocked<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer R
@@ -13,11 +18,22 @@ export type Mocked<T> = {
 };
 
 export function fakeIndicator(): Mocked<ScreenshotIndicator> {
+  return { show: vi.fn(() => Promise.resolve()) };
+}
+
+// A stage that names itself in its title.
+function namedStage<D>(name: string): Stage<D> {
   return {
-    showIdle: vi.fn(() => Promise.resolve()),
-    showProgress: vi.fn(() => Promise.resolve()),
-    showSaving: vi.fn(() => Promise.resolve()),
-    showError: vi.fn(() => Promise.resolve()),
+    lookFor: (): Look => ({ badge: "", colour: "", title: name }),
+  };
+}
+
+export function fakeStages(): ScreenshotStages {
+  return {
+    idle: namedStage("idle"),
+    progress: namedStage("progress"),
+    saving: namedStage("saving"),
+    failed: namedStage("failed"),
   };
 }
 

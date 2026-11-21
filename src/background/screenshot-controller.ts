@@ -3,7 +3,10 @@ import type { ErrorExplainer } from "./error-explainer";
 import type { FileSaver } from "./file-saver";
 import type { Shooter } from "./shooter";
 import type { StitchLifecycle } from "./stitch-session";
-import type { ScreenshotIndicator } from "./screenshot-indicator";
+import type {
+  ScreenshotIndicator,
+  ScreenshotStages,
+} from "./screenshot-indicator";
 import type { ScreenshotNamer } from "./screenshot-namer";
 
 export interface ScreenshotControllerDependencies {
@@ -13,6 +16,7 @@ export interface ScreenshotControllerDependencies {
   namer: ScreenshotNamer;
   saver: FileSaver;
   indicator: ScreenshotIndicator;
+  stages: ScreenshotStages;
   errors: ErrorExplainer;
 }
 
@@ -39,19 +43,25 @@ export class ScreenshotController {
   private async attempt(tab: BrowserTab): Promise<void> {
     try {
       await this.captureAndSave(tab);
-      await this.settle(() => this.deps.indicator.showIdle());
+      await this.settle(() =>
+        this.deps.indicator.show(this.deps.stages.idle, undefined),
+      );
     } catch (error) {
       await this.settle(() =>
-        this.deps.indicator.showError(this.deps.errors.explain(error)),
+        this.deps.indicator.show(
+          this.deps.stages.failed,
+          this.deps.errors.explain(error),
+        ),
       );
     }
   }
 
   private async captureAndSave(tab: BrowserTab): Promise<void> {
     const target = await this.deps.targets.targetFor(tab);
-    await this.deps.indicator.showProgress(0);
+    const { indicator, stages } = this.deps;
+    await indicator.show(stages.progress, 0);
     const urls = await this.deps.shooter.shoot(target);
-    await this.deps.indicator.showSaving();
+    await indicator.show(stages.saving, undefined);
     for (const file of this.deps.namer.name(target.title, urls)) {
       await this.deps.saver.save(file.url, file.filename);
     }

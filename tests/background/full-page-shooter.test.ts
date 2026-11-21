@@ -1,6 +1,6 @@
 import { SlicePlanner } from "../../src/background/capture-plan";
 import { FullPageShooter } from "../../src/background/full-page-shooter";
-import { fakeIndicator, fakePage, fakeStitcher } from "./fakes";
+import { fakeIndicator, fakePage, fakeStages, fakeStitcher } from "./fakes";
 
 const target = { tabId: 4, windowId: 2, title: "Page" };
 
@@ -8,6 +8,7 @@ function setUp() {
   const page = fakePage();
   const stitcher = fakeStitcher();
   const indicator = fakeIndicator();
+  const stages = fakeStages();
   let shot = 0;
   const capture = {
     capture: vi.fn(() => Promise.resolve(`data:${String(++shot)}`)),
@@ -22,13 +23,14 @@ function setUp() {
     capture,
     stitcher,
     indicator,
+    stages,
   });
-  return { page, stitcher, indicator, capture, shooter };
+  return { page, stitcher, indicator, stages, capture, shooter };
 }
 
 describe("FullPageShooter", () => {
   it("scrolls and captures slice by slice, and returns the stitched files", async () => {
-    const { page, stitcher, indicator, capture, shooter } = setUp();
+    const { page, stitcher, indicator, stages, capture, shooter } = setUp();
 
     await expect(shooter.shoot(target)).resolves.toEqual(["blob:1"]);
 
@@ -48,7 +50,11 @@ describe("FullPageShooter", () => {
       ["data:2", rows(0, 800), 800],
       ["data:3", rows(400, 400), 1200],
     ]);
-    expect(indicator.showProgress.mock.calls).toEqual([[0], [1 / 3], [2 / 3]]);
+    expect(indicator.show.mock.calls).toEqual([
+      [stages.progress, 0],
+      [stages.progress, 1 / 3],
+      [stages.progress, 2 / 3],
+    ]);
     expect(page.restore).toHaveBeenCalledWith(4);
   });
 

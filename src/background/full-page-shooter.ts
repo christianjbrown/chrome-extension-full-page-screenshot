@@ -2,7 +2,10 @@ import type { CaptureTarget } from "./capture-target";
 import type { CapturePlanner } from "./capture-planner";
 import type { StitchSession } from "./stitch-session";
 import type { PageDriver } from "./page-driver";
-import type { ProgressIndicator } from "./screenshot-indicator";
+import type {
+  ProgressStages,
+  ScreenshotIndicator,
+} from "./screenshot-indicator";
 import type { Shooter } from "./shooter";
 import type { VisibleTabCapture } from "./visible-tab-capture";
 
@@ -11,7 +14,8 @@ export interface FullPageShooterDependencies {
   planner: CapturePlanner;
   capture: VisibleTabCapture;
   stitcher: StitchSession;
-  indicator: ProgressIndicator;
+  indicator: ScreenshotIndicator;
+  stages: ProgressStages;
 }
 
 // Scrolls the page a frame at a time, captures what is on screen, and hands
@@ -31,11 +35,11 @@ export class FullPageShooter implements Shooter {
   }
 
   private async slices(target: CaptureTarget): Promise<void> {
-    const { page, capture, stitcher, indicator } = this.deps;
+    const { page, capture, stitcher, indicator, stages } = this.deps;
     const plan = this.deps.planner.plan(await page.prepare(target.tabId));
     await stitcher.begin(plan.width, plan.height);
     for (const [index, slice] of plan.slices.entries()) {
-      await indicator.showProgress(index / plan.slices.length);
+      await indicator.show(stages.progress, index / plan.slices.length);
       const at = await page.scrollTo(target.tabId, slice.scroll, index > 0);
       const dataUrl = await capture.capture(target.windowId);
       await stitcher.add(dataUrl, slice.rects, at);
