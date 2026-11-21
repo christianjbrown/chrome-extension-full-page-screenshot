@@ -2,7 +2,6 @@ import { isPositiveNumber } from "../shared/numbers";
 import type { Scaling } from "./geometry";
 import type { PartCutter } from "./part-layout";
 import type { PageSize, Picture, PictureSizer } from "./picture";
-import type { Bitmap } from "./surfaces";
 
 const NO_WIDTH = "The capture has no width";
 
@@ -12,7 +11,7 @@ export class CutPictureSizer implements PictureSizer {
     private readonly cutter: PartCutter,
   ) {}
 
-  size<I extends Bitmap>(captureWidth: number, page: PageSize): Picture<I> {
+  size(captureWidth: number, page: PageSize): Picture {
     if (!isPositiveNumber(captureWidth)) {
       throw new Error(NO_WIDTH);
     }
@@ -22,7 +21,7 @@ export class CutPictureSizer implements PictureSizer {
       width: captureWidth,
       height,
       scale,
-      sheets: this.cutter.partsFor(captureWidth, height),
+      parts: this.cutter.partsFor(captureWidth, height),
     };
   }
 }

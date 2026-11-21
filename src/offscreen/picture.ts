@@ -1,18 +1,11 @@
 import type { Part } from "./part-layout";
-import type { Bitmap, Surface } from "./surfaces";
 
-// One part of the picture: painted while slices cover it, then written out.
-export interface Sheet<I extends Bitmap> extends Part {
-  surface?: Surface<I>;
-  url?: string;
-}
-
-// The whole screenshot in device pixels, cut into sheets top to bottom.
-export interface Picture<I extends Bitmap> {
+// The whole screenshot in device pixels, cut into parts top to bottom.
+export interface Picture {
   width: number;
   height: number;
   scale: number;
-  sheets: Sheet<I>[];
+  parts: Part[];
 }
 
 export interface PageSize {
@@ -22,5 +15,5 @@ export interface PageSize {
 
 export interface PictureSizer {
   // The first capture's width sets the size of everything after it.
-  size<I extends Bitmap>(captureWidth: number, page: PageSize): Picture<I>;
+  size(captureWidth: number, page: PageSize): Picture;
 }
