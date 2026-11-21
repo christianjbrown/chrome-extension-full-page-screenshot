@@ -1,6 +1,6 @@
 import { isColourScheme } from "../shared/colour-scheme";
 import type { Command, MessageOf } from "../shared/command";
-import type { Fields } from "../shared/message-fields";
+import type { Fields } from "../shared/fields";
 import { BACKGROUND_TYPES, type BackgroundMessage } from "../shared/messages";
 import type { DeviceSchemeSink } from "./scheme-ports";
 

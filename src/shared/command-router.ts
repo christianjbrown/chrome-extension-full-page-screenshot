@@ -8,7 +8,8 @@ import type { Responder } from "./replies";
 // Returns whether it will answer, which is what Chrome's onMessage listener
 // has to return to keep the reply channel open.
 export class CommandRouter<M extends Message> {
-  private readonly commands: ReadonlyMap<string, Command<M>>;
+  // Keyed by anything, so a message whose type is not a string finds nothing.
+  private readonly commands: ReadonlyMap<unknown, Command<M>>;
 
   constructor(
     commands: readonly Command<M>[],
@@ -26,10 +27,26 @@ export class CommandRouter<M extends Message> {
     if (!this.filter.accepts(message, sender)) {
       return false;
     }
-    const { type } = message;
-    const command =
-      typeof type === "string" ? this.commands.get(type) : undefined;
-    if (command?.accepts(message) !== true) {
+    return this.dispatch(message, reply);
+  }
+
+  private dispatch(
+    message: { type: unknown },
+    reply: (reply: Reply<unknown>) => void,
+  ): boolean {
+    const command = this.commands.get(message.type);
+    if (command === undefined) {
+      return false;
+    }
+    return this.run(command, message, reply);
+  }
+
+  private run(
+    command: Command<M>,
+    message: unknown,
+    reply: (reply: Reply<unknown>) => void,
+  ): boolean {
+    if (!command.accepts(message)) {
       return false;
     }
     this.responder.answer(command.handle(message), reply);

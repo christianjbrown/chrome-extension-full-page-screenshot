@@ -1,5 +1,6 @@
 import type { Command, MessageOf } from "../shared/command";
-import { isRect, type Fields } from "../shared/message-fields";
+import type { Fields } from "../shared/fields";
+import { isRect } from "../shared/message-fields";
 import { OFFSCREEN_TYPES, type OffscreenMessage } from "../shared/messages";
 import { isFiniteNumber } from "../shared/numbers";
 import type { SlicePainter } from "./stitch-commands";

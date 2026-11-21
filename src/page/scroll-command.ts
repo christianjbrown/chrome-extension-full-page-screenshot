@@ -1,5 +1,5 @@
 import type { Command, MessageOf } from "../shared/command";
-import type { Fields } from "../shared/message-fields";
+import type { Fields } from "../shared/fields";
 import { PAGE_TYPES, type PageMessage } from "../shared/messages";
 import { isFiniteNumber } from "../shared/numbers";
 import type { PageScroller } from "./page-commands";
