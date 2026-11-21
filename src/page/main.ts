@@ -8,14 +8,16 @@ import { TARGETS, type PageMessage, type Reply } from "../shared/messages";
 import { SettledResponder } from "../shared/replies";
 import { CaptureScrollStyles } from "./capture-scroll-styles";
 import { PAGE_CONFIG } from "./config";
-import { VisibleImageWaiter } from "./image-waiter";
-import { FREEZE_RULES, LayoutFreezer } from "./layout-freezer";
+import { VisibleImageWaiter } from "./visible-image-waiter";
+import { FREEZE_RULES } from "./freeze-rules";
+import { LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
-import { DomElements, type PageElement } from "./page-elements";
+import { DomElements } from "./dom-elements";
+import type { PageElement } from "./page-elements";
 import { Reinstaller, type Installed } from "./reinstaller";
 import { ScrollerFinder } from "./scroller-finder";
-import { DomScrollerFactory } from "./scrollers";
-import { FrameSettler } from "./settler";
+import { DomScrollerFactory } from "./dom-scroller-factory";
+import { FrameSettler } from "./frame-settler";
 import { StyleLedger } from "./style-ledger";
 
 type Listener = (

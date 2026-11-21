@@ -1,21 +1,17 @@
 import type { PageLayout } from "../shared/messages";
 import type { ImageWaiter } from "./image-waiter";
-import type { Freezer } from "./layout-freezer";
+import type { Freezer } from "./freezer";
 import type { ScrollSteadier } from "./scroll-steadier";
-import type { Scroller } from "./scrollers";
+import type { Scroller, ScrollerSource } from "./scroller";
 import type { Settler } from "./settler";
-import type { StyleRestoration } from "./style-ledger";
+import type { StyleRestoration } from "./inline-styles";
+import type { Restorable } from "./restorable";
 import type { Viewport } from "./viewport";
 
 // What the service worker asks of the page while it captures.
-interface PageCommands {
+interface PageCommands extends Restorable {
   prepare(): Promise<PageLayout>;
   scrollTo(y: number, hideFixed: boolean): Promise<number>;
-  restore(): Promise<void>;
-}
-
-interface ScrollerSource {
-  find(): Scroller;
 }
 
 export interface PageControllerDependencies {

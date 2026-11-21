@@ -1,4 +1,4 @@
-import { DomElements } from "../../src/page/page-elements";
+import { DomElements } from "../../src/page/dom-elements";
 import { fakeElement } from "./fakes";
 
 describe("DomElements", () => {

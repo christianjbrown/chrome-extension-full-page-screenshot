@@ -1,7 +1,7 @@
 import {
   VisibleImageWaiter,
   type PageImage,
-} from "../../src/page/image-waiter";
+} from "../../src/page/visible-image-waiter";
 
 function image(
   overrides: Partial<{

@@ -1,11 +1,11 @@
 import { SCROLLING_OVERFLOW } from "./css";
 import type { PageElement, PageElements } from "./page-elements";
-import type { Scroller, ScrollerFactory } from "./scrollers";
+import type { Scroller, ScrollerFactory, ScrollerSource } from "./scroller";
 import type { Viewport } from "./viewport";
 
 // Picks the window when the page itself scrolls, and otherwise the biggest
 // element that scrolls its own content, as web apps with a fixed shell do.
-export class ScrollerFinder {
+export class ScrollerFinder implements ScrollerSource {
   constructor(
     private readonly window: Viewport,
     private readonly root: PageElement,

@@ -1,4 +1,5 @@
-import { FREEZE_RULES, LayoutFreezer } from "../../src/page/layout-freezer";
+import { FREEZE_RULES } from "../../src/page/freeze-rules";
+import { LayoutFreezer } from "../../src/page/layout-freezer";
 import { StyleLedger } from "../../src/page/style-ledger";
 import { FakeElements, fakeElement } from "./fakes";
 

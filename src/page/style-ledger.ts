@@ -1,29 +1,11 @@
 import { IMPORTANT } from "./css";
-
-export interface InlineStyle {
-  getPropertyValue(property: string): string;
-  getPropertyPriority(property: string): string;
-  setProperty(property: string, value: string, priority: string): void;
-  removeProperty(property: string): string;
-}
-
-export interface Styled {
-  style: InlineStyle;
-}
+import type { StyleOverrides, StyleRestoration, Styled } from "./inline-styles";
 
 interface Original {
   target: Styled;
   property: string;
   value: string;
   priority: string;
-}
-
-export interface StyleOverrides {
-  override(target: Styled, property: string, value: string): void;
-}
-
-export interface StyleRestoration {
-  restore(): void;
 }
 
 // Overrides inline styles for the capture and remembers exactly what was there

@@ -1,6 +1,4 @@
-interface Restorable {
-  restore(): Promise<void>;
-}
+import type { Restorable } from "./restorable";
 
 export interface Installed<L> {
   listener: L;

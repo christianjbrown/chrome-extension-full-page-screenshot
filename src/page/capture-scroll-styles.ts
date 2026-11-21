@@ -1,6 +1,6 @@
 import { PROPERTY, VALUE } from "./css";
 import type { ScrollSteadier } from "./scroll-steadier";
-import type { StyleOverrides, Styled } from "./style-ledger";
+import type { StyleOverrides, Styled } from "./inline-styles";
 
 // Smooth scrolling would still be moving when the slice is taken, and a
 // classic scrollbar would be painted into every slice, so both are turned off

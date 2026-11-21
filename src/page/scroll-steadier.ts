@@ -1,4 +1,4 @@
-import type { Styled } from "./style-ledger";
+import type { Styled } from "./inline-styles";
 
 // Readies whatever scrolls the page for a capture.
 export interface ScrollSteadier {
