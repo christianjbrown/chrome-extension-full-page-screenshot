@@ -29,14 +29,21 @@ export class ScreenshotController {
     }
     this.busy = true;
     try {
+      await this.attempt(tab);
+    } finally {
+      this.busy = false;
+    }
+  }
+
+  // Shows how it went either way.
+  private async attempt(tab: BrowserTab): Promise<void> {
+    try {
       await this.captureAndSave(tab);
       await this.settle(() => this.deps.indicator.showIdle());
     } catch (error) {
       await this.settle(() =>
         this.deps.indicator.showError(this.deps.errors.explain(error)),
       );
-    } finally {
-      this.busy = false;
     }
   }
 

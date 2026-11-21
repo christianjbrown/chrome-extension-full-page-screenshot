@@ -1,5 +1,10 @@
 import type { PageLayout } from "../shared/messages";
-import { isFiniteNumber, isPositiveNumber } from "../shared/numbers";
+import type { Fields } from "../shared/fields";
+import {
+  isFiniteNumber,
+  isNonNegativeNumber,
+  isPositiveNumber,
+} from "../shared/numbers";
 import type { PageValidator } from "./page-validator";
 
 const POSITIVE: (keyof PageLayout)[] = [
@@ -18,15 +23,18 @@ const BAD_LAYOUT = "The page reported an unusable layout";
 const LIST = ", ";
 const BAD_SCROLL = "The page reported an unusable scroll position";
 
+// Nothing at all reads as a layout with every field missing.
+const fieldsOf = (value: unknown): Fields => (value ?? {}) as Fields;
+
+const badKeys = (fields: Fields): (keyof PageLayout)[] => [
+  ...POSITIVE.filter((key) => !isPositiveNumber(fields[key])),
+  ...NOT_NEGATIVE.filter((key) => !isNonNegativeNumber(fields[key])),
+];
+
 export class FinitePageValidator implements PageValidator {
   layout(value: unknown): PageLayout {
-    const fields = (value ?? {}) as Record<string, unknown>;
-    const bad = [
-      ...POSITIVE.filter((key) => !isPositiveNumber(fields[key])),
-      ...NOT_NEGATIVE.filter(
-        (key) => !isFiniteNumber(fields[key]) || fields[key] < 0,
-      ),
-    ];
+    const fields = fieldsOf(value);
+    const bad = badKeys(fields);
     if (bad.length > 0) {
       throw new Error(`${BAD_LAYOUT} (${bad.join(LIST)})`);
     }

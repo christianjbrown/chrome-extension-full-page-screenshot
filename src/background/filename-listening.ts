@@ -33,6 +33,11 @@ export class FilenameListening<Listener> implements Listening {
     if (this.holds === NOT_HELD) {
       return;
     }
+    this.letGo();
+  }
+
+  // The last hold to go takes the listener with it.
+  private letGo(): void {
     this.holds -= 1;
     if (this.holds === NOT_HELD) {
       this.event.removeListener(this.listener);
