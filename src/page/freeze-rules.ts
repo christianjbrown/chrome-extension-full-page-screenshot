@@ -1,36 +1,30 @@
+// What happens to the elements of each computed position on a slice. A new
+// position is a new class here and one line in the root.
 import { POSITION, PROPERTY, VALUE } from "./css";
+import type { PositionRule } from "./position-rule";
 
-// What happens to the elements of one computed position on a slice.
-export interface PositionRule {
-  // Whether this slice needs the overrides at all.
-  applies(hideFixed: boolean): boolean;
-  overrides: readonly (readonly [property: string, value: string])[];
+// Sticky elements go back to where they sit in the page.
+export class StickyRule implements PositionRule {
+  readonly position = POSITION.sticky;
+  readonly overrides = [
+    [PROPERTY.position, VALUE.relative],
+    [PROPERTY.inset, VALUE.auto],
+  ] as const;
+
+  applies(): boolean {
+    return true;
+  }
 }
 
-// Rules by computed position. A position with no rule is left alone.
-export type PositionRules = ReadonlyMap<string, PositionRule>;
+// Fixed ones, which already showed in the first slice, disappear from the rest.
+export class FixedRule implements PositionRule {
+  readonly position = POSITION.fixed;
+  readonly overrides = [
+    [PROPERTY.opacity, VALUE.invisible],
+    [PROPERTY.transition, VALUE.none],
+  ] as const;
 
-// Sticky elements go back to where they sit in the page, and fixed ones,
-// which already showed in the first slice, disappear from the rest.
-export const FREEZE_RULES: PositionRules = new Map<string, PositionRule>([
-  [
-    POSITION.sticky,
-    {
-      applies: () => true,
-      overrides: [
-        [PROPERTY.position, VALUE.relative],
-        [PROPERTY.inset, VALUE.auto],
-      ],
-    },
-  ],
-  [
-    POSITION.fixed,
-    {
-      applies: (hideFixed) => hideFixed,
-      overrides: [
-        [PROPERTY.opacity, VALUE.invisible],
-        [PROPERTY.transition, VALUE.none],
-      ],
-    },
-  ],
-]);
+  applies(hideFixed: boolean): boolean {
+    return hideFixed;
+  }
+}

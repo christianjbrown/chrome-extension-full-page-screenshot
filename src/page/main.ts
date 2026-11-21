@@ -11,7 +11,7 @@ import { SettledResponder } from "../shared/settled-responder";
 import { CaptureScrollStyles } from "./capture-scroll-styles";
 import { PAGE_CONFIG } from "./config";
 import { VisibleImageWaiter } from "./visible-image-waiter";
-import { FREEZE_RULES } from "./freeze-rules";
+import { FixedRule, StickyRule } from "./freeze-rules";
 import { LayoutFreezer } from "./layout-freezer";
 import { PageController } from "./page-controller";
 import { DomElements } from "./dom-elements";
@@ -56,7 +56,10 @@ const controller = new PageController({
     new DomScrollerFactory(window, root),
   ),
   steadier: new CaptureScrollStyles(ledger, root),
-  freezer: new LayoutFreezer(elements, ledger, FREEZE_RULES),
+  freezer: new LayoutFreezer(elements, ledger, [
+    new StickyRule(),
+    new FixedRule(),
+  ]),
   settler: new FrameSettler(
     (callback) => requestAnimationFrame(callback),
     (callback, ms) => setTimeout(callback, ms),
